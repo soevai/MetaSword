@@ -5,7 +5,11 @@ var terminalElement = document.getElementById("terminal");
 
 inputElement.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
-        var inputText = inputElement.value;
+        var inputText = inputElement.value.trim();
+        if (inputText === "") {
+            return;
+        }
+
         if (inputText === "clear") {
             terminalElement.innerHTML = "";
             inputElement.value = "";
