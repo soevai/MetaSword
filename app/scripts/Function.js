@@ -1,6 +1,6 @@
 /*
     @Author: 发光的神（VoxShadow）
-    @Date: 2023/08/31 ~ 2024/8/25
+    @Date: 2023/08/31 ~ 2024/11/10
     @Version: 1.0.3
 */
 
@@ -47,6 +47,7 @@ function checkMouseOver(icon) {
 }
 
 function showPage(pageName) {
+    
     var pages = ['homePage', 'toolsPage', 'ChatGPTPage', 'aboutPage'];
     for (var i = 0; i < pages.length; i++) {
         var pageElement = document.getElementById(pages[i]);
@@ -155,14 +156,14 @@ function displayCategoryItems(categoryName) {
 
                 var button = createButton(text, imagePath);
                 button.style.transition = 'opacity 0.s ease, transform 0.1s ease';
-                button.style.transform = 'translatey(-50px)';
+                button.style.transform = 'translatex(-50px)';
+                // button.style.transform = 'translatey(-50px)';
                 button.style.opacity = 0;
 
                 setTimeout(() => {
                     button.style.opacity = 1;
                     button.style.transform = 'translatey(0)';
-                }, index * 20);
-
+                }, index * 25);
                 resultsContainer.appendChild(button);
             });
         }
@@ -246,10 +247,7 @@ function handleButtonClick(buttonName) {
                 var executablePathText = selectedItem.getElementsByTagName('executablePath')[0].textContent;
                 var isAbsolutePath = /^[a-zA-Z]:\\/.test(executablePathText);
                 var executablePath = isAbsolutePath ? 
-                                     executablePathText :
-                                     path.join(__dirname, '..', '..', executablePathText);
-                
-                console.log(executablePath);
+                executablePathText : path.join(__dirname, '..', '..', executablePathText);
                 runCommandAsAdmin(executablePath);
             }
         })

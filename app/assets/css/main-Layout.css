@@ -1,6 +1,6 @@
 /* 
     @Author: 发光的神（VoxShadow）
-    @Date: 2023/08/31 ~ 2024/8/25
+    @Date: 2023/08/31 ~ 2024/11/10
     @Version: 1.0.3
 */
 
@@ -27,7 +27,7 @@
     min-height: 98%;
     border-radius: 10px;
     background-color: #0c0c0c;
-    box-shadow: 0px 0px 2px 0px rgba(0, 0, 0);
+    box-shadow: 0px 0px 3px 0px rgba(0, 0, 0);
     overflow: hidden;
 }
 
@@ -239,7 +239,7 @@
     color: #fff;
     border-radius: 6px;
     transition: 0.2s;
-    box-shadow: 2px 2px 1px rgb(0 101 73);
+    box-shadow: 2px 2px 1px rgb(0 120 87);
     font-family: BalooDa2-SemiBold;
     border: none;
 }
@@ -421,6 +421,7 @@ input[type="search"]:hover {
     top: 50%;
     left: 50%;
     filter: invert(1);
+    z-index: 999;
 }
 
 .logo-right {
@@ -431,6 +432,7 @@ input[type="search"]:hover {
     top: 50%;
     left: 50%;
     animation: slide-in2 0.3s ease-in-out forwards;
+    z-index: 999;
     /* filter: drop-shadow(-2px -2px 3px rgb(255, 255, 255)); */
 }
 
@@ -448,5 +450,5 @@ input[type="search"]:hover {
 
 
 #center-logo:hover {
-    box-shadow: 0px 7px 1px -4px rgba(0, 161, 140, 1); 
+    box-shadow: 0px 7px 1px -4px rgba(0, 161, 140, 1);
 }
