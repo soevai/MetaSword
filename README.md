@@ -1,4 +1,4 @@
-<h1 align="center">次元剑（MetaSword）</h1>
+<h1 align="center">次 元 剑（MetaSword）</h1>
 
 <p align="center">
   <img src="https://img.shields.io/github/languages/code-size/nanchengcyu/TechMindWave-backend" alt="code size"/>
