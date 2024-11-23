@@ -21,22 +21,52 @@
 
 <body>
     <video id="video" autoplay="true">
-        <source src="./assets/LogoAnimation.webm" type="video/webm">
+        <source src="./public/Animation.webm" type="video/webm">
     </video>
 
     <audio id="audio" autoplay>
-        <source src="./assets/audio/logo.mp3" type="audio/mpeg">
+        <source src="./public/audio/logo.mp3" type="audio/mpeg">
     </audio>
 
     <script>
-        const video = document.getElementById('video');
         const { ipcRenderer } = require('electron');
-        ipcRenderer.send('createMainWindow');
-        
-        video.addEventListener('ended', () => {
-            ipcRenderer.send('close-transparent');
-        });
-    </script>
+        const fs = require('fs');
+        const path = require('path');
+        const xml2js = require('xml2js');
+        const video = document.getElementById('video');
+        const CONFIG_PATH = path.join(__dirname, 'config', 'config.xml');
 
+        const loadAnimationSpeed = async () => {
+            try {
+                const data = await fs.promises.readFile(CONFIG_PATH, 'utf8');
+                const result = await xml2js.parseStringPromise(data);
+                const settings = result.config.settings[0].tag;
+
+                const animationSpeedTag = settings.find(tag => tag.$.name === 'AnimationSpeed');
+                const animationSpeed = animationSpeedTag ? parseFloat(animationSpeedTag.$.value) : 1.0;
+                return animationSpeed;
+            } catch (err) {
+                console.error('Loading error:', err);
+                return 1.0; 
+            }
+        };
+        ipcRenderer.send('createMainWindow');
+        const initializeVideo = async () => {
+            try {
+                const playbackRate = await loadAnimationSpeed();
+                video.playbackRate = playbackRate; 
+
+                video.addEventListener('ended', () => {
+                    ipcRenderer.send('close-transparent');
+                });
+            } catch (err) {
+                console.error('error:', err);
+                video.playbackRate = 1.0; 
+            }
+        };
+
+        initializeVideo();
+    </script>
 </body>
+
 </html>

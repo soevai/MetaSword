@@ -1,4 +1,4 @@
 function main() {
-    console.log("Hello, Frida!");
+    console.log("Hello, MetaSword!");
 }
 main();

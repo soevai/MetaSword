@@ -1,18 +1,157 @@
 * {
-    margin: 0;
-    padding: 0;
-
+    margin: 0px;
+    padding: 0px;
+    /* box-sizing: border-box; */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 body {
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - 30px);
-    margin: 0;
     overflow: hidden;
+    padding: 5px;
 }
 
-#dropArea {
+.frida-IDE-logo {
+    width: 37px;
+    margin-left: 5px;
+}
+
+.frida-IDE-title {
+    font-weight: bold;
+}
+
+.frida-IDE-topview {
+    position: fixed;
+    right: 5px;
+    display: flex;
+    gap: 3px;
+    align-items: center;
+}
+
+#frida-IDE-processSearch{
+    width: 93%;
+    height: 18px;
+    margin: 3px auto;
+    padding: 5px 8px;
+    font-size: 13px;
+    border: 2px solid #d9d9d9;
+    border-radius: 5px;
+    outline: none;
+    font-size: 15px;
+}
+
+.frida-IDE-PID {
+    width: 70px;
+    height: 22px;
+    padding: 0 0px;
+    margin-right: 10px;
+    border: none;
+    outline: none;
+    background-color: #373c47;
+    color: #979797;
+    border-radius: 5px;
+    font-size: 15px;
+    text-align: center;
+    font-family: fantasy;
+    margin-left: 10px;
+    -webkit-app-region: no-drag;
+}
+
+.frida-IDE-search {
+    border: none;
+    padding: 5px 10px;
+    background: #333843;
+    font-size: 15px;
+    margin-left: 10px;
+    border-radius: 5px;
+    filter: opacity(0.8);
+    transition: background-color 0.2s ease-in-out;
+    float: left;
+    -webkit-app-region: no-drag;
+}
+
+.frida-IDE-search:hover {
+    background-color: #2d4557;
+}
+
+.frida-IDE-search:active {
+    background-color: #22262c;
+}
+
+.frida-IDE-search>img {
+    width: 25px;
+    filter: brightness(1);
+    pointer-events: none;
+}
+
+
+.frida-IDE-switch {
+    position: relative;
+    display: inline-block;
+    width: 45px;
+    height: 18px;
+    margin-right: 10px;
+}
+
+.frida-IDE-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.frida-IDE-topButton {
+    width: 35px;
+    height: 25px;
+    border: none;
+    border-radius: 5px;
+    background-color: #2c3f4b;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    float: left;
+    display: inline-block;
+    margin-right: 5px;
+    text-align: center;
+    -webkit-app-region: no-drag;
+}
+
+.frida-IDE-topButton:active {
+    background-color: #1b2a34;
+}
+
+.frida-IDE-topButton:hover {
+    background-color: #3a4d5c;
+}
+
+.frida-IDE-topButton:active {
+    background-color: #1b2a34;
+}
+
+.minimize-btn {
+    font-size: 18px;
+}
+.close-btn {
+    font-size: 18px;
+    color: #f56666;
+}
+
+
+.frida-IDE-topbar-view {
+    width: 100%;
+    height: var(--top-bar);
+    background-color: #22262e;
+    color: #fff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    border-radius: 8px 8px 0px 0px;
+    -webkit-app-region: drag;
+}
+
+#frida-IDE-dropArea {
     width: 150px;
     padding: 30px 40px;
     border: 2px dashed #777777;
@@ -24,33 +163,42 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-100px, -50px);
-    filter: opacity(0.8);
+    filter: opacity(0.5);
     display: flex;
     justify-content: center;
 }
 
-#dropArea > img {
+
+#frida-IDE-dropArea>img {
     width: 70px;
     height: 70px;
 }
 
+.frida-IDE-table-container {
+    max-height: 230px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.frida-IDE-table-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.frida-IDE-table-container::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 4px;
+}
+
+.frida-IDE-table-container::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+}
 
 #editor {
     width: 100%;
-    height: calc(100vh - 30px);
-    position: fixed;
-    top: 35px;
+    height: calc(100vh - 45px);
     overflow-y: auto;
-}
-
-.run-top-view {
-    position: fixed;
-    width: 100%;
-    height: 35px;
-    background: #282c34;
-    display: flex;
-    align-items: center;
-    z-index: 1;
+    border-radius: 0px 0px 10px 10px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
 }
 
 .ace_scrollbar::-webkit-scrollbar {
@@ -65,21 +213,7 @@ body {
     background: #2c3f4b;
 }
 
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 45px;
-    height: 18px;
-    margin-right: 10px;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
+.frida-IDE-slider {
     position: absolute;
     cursor: pointer;
     float: right;
@@ -90,9 +224,10 @@ body {
     background-color: #2c3f4b;
     transition: .4s;
     border-radius: 34px;
+    -webkit-app-region: no-drag;
 }
 
-.slider:before {
+.frida-IDE-slider:before {
     position: absolute;
     content: "";
     height: 18px;
@@ -103,40 +238,20 @@ body {
     border-radius: 50%;
 }
 
-input:checked+.slider {
+input:checked+.frida-IDE-slider {
     background-color: #2c3f4b;
 }
 
-input:checked+.slider:before {
+input:checked+.frida-IDE-slider:before {
     background-color: rgb(0, 154, 214);
     transform: translateX(25px);
 }
 
-.Pidinput {
-    width: 70px;
-    height: 22px;
-    padding: 0 0px;
-    margin-right: 10px;
-    border: none;
-    outline: none;
-    background-color: #2f343f;
-    color: #979797;
-    border-radius: 5px;
-    font-size: 15px;
-    text-align: center;
-    font-family: fantasy;
-    margin-left: 10px;
-}
-
-.overlay-image {
+.frida-IDE-overlay-image {
     position: fixed;
     right: 0px;
-    bottom: -14px;
+    bottom: 3px;
     width: 200px;
-    z-index: 2;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    -webkit-user-select: none;
     pointer-events: none;
     filter: opacity(0.5);
     animation: fadeIn 0.5s ease-in-out forwards;
@@ -152,54 +267,30 @@ input:checked+.slider:before {
     }
 }
 
-
-.draggable {
+.frida-IDE-draggable {
     position: absolute;
     top: 50px;
     left: 50px;
-    width: 350px;
+    width: 328px;
     background-color: #f9f9f9;
-    padding: 10px;
     z-index: 10;
     display: none;
     border-radius: 8px;
     overflow: hidden;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
 }
 
-
-.table-container {
-    max-height: 230px;
-    overflow-y: auto;
-    overflow-x: hidden;
-
-}
-
-.table-container::-webkit-scrollbar {
-    width: 6px;
-}
-
-.table-container::-webkit-scrollbar-thumb {
-    background-color: #888; 
-    border-radius: 4px; 
-}
-
-.table-container::-webkit-scrollbar-track {
-    background-color: #f1f1f1; 
-}
-
-
-.draggable table {
+.frida-IDE-draggable table {
     width: 100%;
     border-collapse: collapse;
 }
 
-
-.draggable th {
+.frida-IDE-draggable th {
     background-color: #f2f2f2;
     text-align: left;
 }
 
-.draggable tr:hover {
+.frida-IDE-draggable tr:hover {
     background-color: #ddd;
 }
 
@@ -223,46 +314,28 @@ tbody tr:hover {
     background-color: #f5f5f5;
 }
 
-#processSearch {
-    width: 94%;
-    height: 10px;
-    margin: 8px auto;
-    padding: 10px 10px;
-    font-size: 15px;
-    border: 2px solid #595959;
-    border-radius: 8px;
-    outline: none;
-}
-
-.window-close-btn {
+.frida-IDE-window-closebtn {
     width: 35px;
-    height: 21px;
+    height: 100%;
     float: right;
     border: none;
-    border-radius: 5px;
+    font-weight: bold;
+    color: grey;
 }
 
-.processbutton {
-    border: none;
-    padding: 5px 10px;
-    color: #c1c1c1;
-    background: #282c34;
+.frida-IDE-window-closebtn:active {
+    color: #c34747;
+}
+
+.frida-IDE-window-header {
+    width: 100%;
+    height: 33px;
+}
+
+.frida-IDE-Listwindow {
+    padding: 5px 15px 10px 15px;
+}
+
+#frida-IDE-processes {
     font-size: 15px;
-    margin-left: 10px;
-    border-radius: 5px;
-    filter: opacity(0.7);
-}
-
-.processbutton:active {
-    background-color: #22262c;
-}
-
-.processbutton > img {
-    width: 25px;
-    filter: brightness(1);
-    pointer-events: none;
-}
-
-.window-title {
-    font-size: 16px;
 }

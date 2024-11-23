@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<config>
+  <settings>
+    <tag name="AnimationStart" value="enabled" description="启动动画"/>
+    <tag name="AnimationSpeed" value="1.2" description="动画速度"/>
+    <tag name="Theme" value="dark" description="主题切换"/>
+  </settings>
+</config>

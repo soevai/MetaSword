@@ -1,0 +1,211 @@
+/* 
+    @Author: 发光的神（VoxShadow）
+    @Date: 2023/08/31 ~ 2024/11/21
+    @Version: 1.0.4
+*/
+
+@keyframes fade-in {
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes slide-in1 {
+    0% {
+        transform: translateX(0) translateY(-120%);
+    }
+
+    100% {
+        transform: translateX(-50%) translateY(-50%);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-in2 {
+    0% {
+        transform: translateX(-100%) translateY(-120%);
+    }
+
+    100% {
+        transform: translateX(-50%) translateY(-50%);
+        opacity: 1;
+    }
+}
+
+h1 {
+    position: relative;
+    color: lightseagreen;
+    font-size: 30px;
+    user-select: none;
+}
+
+h1:before,
+h1:after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+h1:before {
+    left: -2px;
+    text-shadow: 2px 0 #000;
+    animation: glitch-anim-1 2s linear infinite alternate-reverse;
+}
+
+h1:after {
+    left: 2px;
+    text-shadow: -1px 0 #21b4ba;
+    animation: glitch-anim-2 3s linear infinite alternate-reverse;
+}
+
+@keyframes glitch-anim-2 {
+    0% {
+        clip: rect(60px, 820px, 107px, 0)
+    }
+
+    5.8823529412% {
+        clip: rect(75px, 820px, 36px, 0)
+    }
+
+    11.7647058824% {
+        clip: rect(67px, 820px, 37px, 0)
+    }
+
+    17.6470588235% {
+        clip: rect(71px, 820px, 22px, 0)
+    }
+
+    23.5294117647% {
+        clip: rect(41px, 820px, 101px, 0)
+    }
+
+    29.4117647059% {
+        clip: rect(32px, 820px, 98px, 0)
+    }
+
+    35.2941176471% {
+        clip: rect(3px, 820px, 15px, 0)
+    }
+
+    41.1764705882% {
+        clip: rect(104px, 820px, 96px, 0)
+    }
+
+    47.0588235294% {
+        clip: rect(74px, 820px, 1px, 0)
+    }
+
+    52.9411764706% {
+        clip: rect(54px, 820px, 73px, 0)
+    }
+
+    58.8235294118% {
+        clip: rect(78px, 820px, 38px, 0)
+    }
+
+    64.7058823529% {
+        clip: rect(22px, 820px, 47px, 0)
+    }
+
+    70.5882352941% {
+        clip: rect(54px, 820px, 53px, 0)
+    }
+
+    76.4705882353% {
+        clip: rect(15px, 820px, 62px, 0)
+    }
+
+    82.3529411765% {
+        clip: rect(26px, 820px, 109px, 0)
+    }
+
+    88.2352941176% {
+        clip: rect(99px, 820px, 78px, 0)
+    }
+
+    94.1176470588% {
+        clip: rect(26px, 820px, 31px, 0)
+    }
+
+    to {
+        clip: rect(39px, 820px, 1px, 0)
+    }
+}
+
+
+@keyframes glitch-anim-1 {
+    0% {
+        clip: rect(1px, 820px, 72px, 0)
+    }
+
+    5.8823529412% {
+        clip: rect(61px, 820px, 92px, 0)
+    }
+
+    11.7647058824% {
+        clip: rect(111px, 820px, 24px, 0)
+    }
+
+    17.6470588235% {
+        clip: rect(29px, 820px, 46px, 0)
+    }
+
+    23.5294117647% {
+        clip: rect(27px, 820px, 53px, 0)
+    }
+
+    29.4117647059% {
+        clip: rect(64px, 820px, 81px, 0)
+    }
+
+    35.2941176471% {
+        clip: rect(70px, 820px, 77px, 0)
+    }
+
+    41.1764705882% {
+        clip: rect(46px, 820px, 62px, 0)
+    }
+
+    47.0588235294% {
+        clip: rect(34px, 820px, 59px, 0)
+    }
+
+    52.9411764706% {
+        clip: rect(38px, 820px, 22px, 0)
+    }
+
+    58.8235294118% {
+        clip: rect(42px, 820px, 61px, 0)
+    }
+
+    64.7058823529% {
+        clip: rect(7px, 820px, 15px, 0)
+    }
+
+    70.5882352941% {
+        clip: rect(94px, 820px, 50px, 0)
+    }
+
+    76.4705882353% {
+        clip: rect(38px, 820px, 60px, 0)
+    }
+
+    82.3529411765% {
+        clip: rect(48px, 820px, 33px, 0)
+    }
+
+    88.2352941176% {
+        clip: rect(31px, 820px, 103px, 0)
+    }
+
+    94.1176470588% {
+        clip: rect(15px, 820px, 93px, 0)
+    }
+
+    to {
+        clip: rect(113px, 820px, 19px, 0)
+    }
+}

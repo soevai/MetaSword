@@ -3,106 +3,118 @@
 
 <!-- 
     @Author: 发光的神（VoxShadow）
-    @Date: 2023/08/31 ~ 2024/11/10
-    @Version: 1.0.3
+    @Date: 2023/08/31 ~ 2024/11/21
+    @Version: 1.0.4
 -->
 
 <head>
     <meta charset="UTF-8">
-    <title>次元剑 - 逆向工具箱</title>
+    <title>逆向工具箱 - 次元剑</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="./assets/css/main-Layout.css">
-    <link rel="stylesheet" type="text/css" href="./assets/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="./public/css/MetaMain.css">
+    <link rel="stylesheet" type="text/css" href="./public/font-awesome/css/font-awesome.min.css">
 </head>
 
 <body>
-    <div id="asword-main-view">
-        <div class="asword-topbar-view">
+    <div id="MetaSword-main-view">
+        <div class="MetaSword-topbar-view">
             <i class="fa fa-eercast"></i>
-            <p class="asword-toptitle-view">次元剑</p>
-            <div id="customCloseButton" class="fa fa-times"></div>
-            <div id="customMinimizeButton" class="fa fa-window-minimize"></div>
+            <p class="MetaSword-title">次元剑</p>
 
-            <div class="asword-container-touch-view">
-                <div class="container">
-                    <div class="online"></div>
+            <div id="MetaSword-customCloseBut" class="fa fa-times"></div>
+            <div id="MetaSword-customMinimizeBut" class="fa fa-window-minimize"></div>
 
-                    <div class="left-Menu" onmouseover="expandContainer()" onmouseout="collapseContainer()">
+            <div class="MetaSword-container-touch-view">
+                <div class="MetaSword-container">
+                    <div class="MetaSword-online"></div>
+
+                    <div class="MetaSword-left-Menu" onmouseover="expandContainer()" onmouseout="collapseContainer()">
                         <i class="fa fa-home" aria-hidden="true" onmouseover="checkMouseOver('主页')"
                             onmouseout="resetColor()" onclick="showPage('home')"></i>
 
                         <i class=" fa fa-cube" aria-hidden="true" onmouseover="checkMouseOver('工具')"
                             onmouseout="resetColor()" onclick="showPage('tools')"></i>
 
-                        <img src="./assets/image/gpt.png" draggable="false" style="user-select: none;"
+                        <img src="./public/image/chatgpt.png" draggable="false" style="user-select: none;"
                             class="ChatGPTbutton" onmouseover="checkMouseOver('ChatGPT')" onmouseout="resetColor()"
                             onclick="showPage('ChatGPT')">
 
                         <i class="fa fa-tags" aria-hidden="true" onmouseover="checkMouseOver('关于')"
                             onmouseout="resetColor()" onclick="showPage('about')"></i>
                     </div>
-                    
                 </div>
             </div>
-
         </div>
-        <div class="main-View-line"></div>
-        <div class="main-View-content">
+        <div class="MetaSword-main-View-line"></div>
+        <div class="MetaSword-main-View-content">
             <div id="homePage" style="display: block; opacity: 1;">
-                <img class="logo-right" src="./assets/image/Sword-Left.png" draggable="false"
+                <img class="logo-right" src="./public/image/Sword-Left.png" draggable="false"
                     style="user-select: none;">
 
-                <img class="logo-left" src="./assets/image/Sword-Right.png" draggable="false"
+                <img class="logo-left" src="./public/image/Sword-Right.png" draggable="false"
                     style="user-select: none;">
 
-                <img id="center-logo" src="./assets/image/Sword-Center.png" draggable="false"
+                <img id="center-logo" src="./public/image/Sword-Center.png" draggable="false"
                     style="user-select: none;">
             </div>
 
             <div id="toolsPage" style="display: none;">
-                <div class="main-View-search">
+                <div class="MetaSword-main-View-search">
                     <input type="search" id="search" placeholder=" Search here ... " oninput="initSearch()"
                         maxlength="30">
                 </div>
                 <div class="grid-container" id="results">
-                    <!-- Button List -->
+                    <!-- Tools List -->
                 </div>
             </div>
 
             <div id="ChatGPTPage" style="display: none;">
-                <div id="terminal">
+                <div id="MetaSword-terminal">
                     <p>Welcome to the ChatGPT 3.5</p>
                 </div>
-                <div id="input-output">
-                    <div id="prompt">&gt;</div>
-                    <input type="text" id="input">
+                <div id="MetaSword-input-output">
+                    <div id="MetaSword-prompt">&gt;</div>
+                    <input type="text" id="MetaSword-input">
                 </div>
             </div>
             <div id="aboutPage" style="display: none;">
-                <div class="center-avatar">
-                    <a id="aHref" href="https://meta.natapp4.cc">
-                        <img src="./assets/image/Avatar.jpg" class="avatar">
+                <div class="MetaSword-center-avatar">
+                    <a id="Blogurl" href="https://meta.natapp4.cc">
+                        <img id="avatar" class="avatar" alt="Avatar">
                     </a>
                     <h1 data-text="VoxShadow">VoxShadow</h1>
                 </div>
             </div>
-
-            <div class="toolsbar"></div>
-
+            <div class="MetaSword-toolsView"></div>
         </div>
 
+        <script>
+            const image = document.getElementById('avatar');
+            const onlineUrl = 'https://thirdqq.qlogo.cn/g?b=qq&nk=2872930558&s=100';
+            const fallbackUrl = './public/image/avatar.jpg';
+            const testImage = new Image();
+            testImage.src = onlineUrl;
+
+            testImage.onload = () => {
+                image.src = onlineUrl;
+            };
+
+            testImage.onerror = () => {
+                image.src = fallbackUrl;
+            };
+        </script>
+
         <script src="renderer.js"></script>
-        <script src="./scripts/Function.js"></script>
+        <script src="./scripts/MainFunc.js"></script>
         <script src="./scripts/ChatGPT.js"></script>
 
         <script>
             var cssLink = document.createElement("link");
-            cssLink.href = "./assets/css/main-Logo.css";
+            cssLink.href = "./public/css/MetaLogo.css";
             cssLink.rel = "stylesheet";
             cssLink.type = "text/css";
             document.head.appendChild(cssLink);
         </script>
-
 </body>
 
 </html>

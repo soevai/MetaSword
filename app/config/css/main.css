@@ -1,0 +1,223 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+body {
+    color: #fff;
+}
+
+.settings-panel {
+    background: #181818;
+    border-radius: 10px 10px 10px 10px;
+    padding: 15px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    height: 100vh;
+    transform: scale(0.99);
+    overflow-y: hidden;
+    white-space: nowrap;
+    display: flex;
+    align-items: baseline;
+    scroll-behavior: smooth;
+}
+
+.settings-panel h1 {
+    font-size: 28px;
+    font-weight: bold;
+    text-align: center;
+    color: #f39c12;
+    margin-bottom: 30px;
+}
+
+.setting-card {
+    width: 100%;
+    display: inline-block;
+    background: #222;
+    padding: 20px;
+    border-radius: 15px;
+    margin-right: 15px;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.settings-panel::-webkit-scrollbar {
+    height: 9px;
+}
+
+.settings-panel::-webkit-scrollbar-track {
+    background: #2e2e2e;
+    border-radius: 0px 0px 10px 10px;
+}
+
+.settings-panel::-webkit-scrollbar-thumb {
+    background: #f39c12;
+    border-radius: 0px 0px 10px 10px;
+    border: 2px solid #2e2e2e;
+}
+
+.settings-panel::-webkit-scrollbar-thumb:hover {
+    background: #e67e22;
+}
+
+.setting-card:hover {
+    background: #252525;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.setting-card h3 {
+    font-size: 18px;
+    color: #f39c12;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.setting-card label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-size: 15px;
+}
+
+.setting-card button {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.button {
+    width: 100%;
+    border: none;
+    padding: 5px;
+    border-radius: 10px;
+    font-size: 15px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+}
+
+.button:active {
+    transform: scale(0.98);
+}
+
+.setting-card input[type="range"] {
+    margin-top: 15px;
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: #444;
+    border-radius: 10px;
+    outline: none;
+    transition: background 0.3s ease;
+}
+
+.setting-card input[type="range"]:hover {
+    background: #f39c12;
+}
+
+.setting-card input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #f39c12;
+    cursor: pointer;
+}
+
+.range-value {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.button-panel {
+    position: absolute;
+    top: 3px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    z-index: 10;
+    padding: 0 17px;
+    -webkit-app-region: drag;
+    align-items: center;
+}
+
+.close-btn,
+.fullscreen-btn {
+    background-color: transparent;
+    border: none;
+    color: #fff;
+    font-size: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    -webkit-app-region: no-drag;
+}
+
+.close-btn:hover,
+.fullscreen-btn:hover {
+    color: #f39c12;
+    transform: scale(1.1);
+}
+
+.setting-card:first-child {
+    margin-top: 30px;
+    margin-left: 15px;
+}
+
+.setting-card:nth-child(2) {
+    margin-top: 0;
+}
+
+#popup-message {
+    color: #000000;
+    font-size: 16px;
+}
+
+.popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    border-radius: 10px;
+    transform: scale(0.99);
+}
+
+.popup-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+#popup-ok {
+    margin-top: 13px;
+    padding: 8px 20px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    font-weight: bold;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    transition: all 0.5s;
+}
+
+#popup-ok:hover {
+    transform: scale(0.95);
+}

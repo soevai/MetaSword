@@ -1,15 +1,15 @@
-const { shell, ipcRenderer } = require('electron');
+const {shell, ipcRenderer } = require('electron');
 
-document.getElementById('customCloseButton').addEventListener('click', () => {
-    ipcRenderer.send('close-app');
+document.getElementById('MetaSword-customCloseBut').addEventListener('click', () => {
+    ipcRenderer.send('close-mainwindow');
 });
 
-document.getElementById('customMinimizeButton').addEventListener('click', () => {
-    ipcRenderer.send('minimize-window');
+document.getElementById('MetaSword-customMinimizeBut').addEventListener('click', () => {
+    ipcRenderer.send('minimize-mainwindow');
 });
 
 
-let aHref = document.querySelector("#aHref");
+let aHref = document.querySelector("#Blogurl");
 aHref.onclick = (e) => {
     e.preventDefault();
     let href = aHref.getAttribute("href");

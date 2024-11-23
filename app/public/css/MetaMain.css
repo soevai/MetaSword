@@ -1,0 +1,476 @@
+/* 
+    @Author: 发光的神（VoxShadow）
+    @Date: 2023/08/31 ~ 2024/11/21
+    @Version: 1.0.4
+*/
+
+* {
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+@font-face {
+    font-family: 'BalooDa2-SemiBold';
+    src: url('../font-family/SemiBold.ttf');
+}
+
+
+.fa {
+    font: 14px/1 FontAwesome;
+}
+
+#MetaSword-main-view {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    min-width: 98%;
+    min-height: 98%;
+    transform: translate(-50%, -50%);
+    border-radius: 10px;
+    background-color: #0c0c0c;
+    box-shadow: 0px 0px 3px 0px rgba(0, 0, 0);
+    overflow: hidden;
+}
+
+.MetaSword-topbar-view {
+    position: relative;
+    width: 100%;
+    height: 30px;
+    background: #0c0c0c;
+    -webkit-app-region: drag;
+}
+
+.MetaSword-title {
+    position: absolute;
+    top: 50%;
+    left: 40px;
+    transform: translateY(-50%);
+    color: #fff;
+    font-weight: bold;
+    font-family: cursive;
+    font-size: 16px;
+    -webkit-user-select: none;
+}
+
+#MetaSword-customCloseBut {
+    position: absolute;
+    color: #fff;
+    top: 50%;
+    right: 0;
+    padding: 8px 13px;
+    transform: translateY(-50%);
+    -webkit-app-region: no-drag;
+    font-size: 13px;
+    transition: all 0.5s;
+}
+
+#MetaSword-customCloseBut:hover {
+    color: #ff0000;
+}
+
+.MetaSword-container-touch-view {
+    position: fixed;
+    top: 53%;
+    width: 53px;
+    height: 250px;
+    transition: 0.3s;
+    transform: translateY(-50%);
+    z-index: 999;
+}
+
+
+.MetaSword-container {
+    width: 7px;
+    height: 100%;
+    background-color: lightseagreen;
+    border-radius: 0px 20px 20px 0px;
+    transition: 0.2s;
+}
+
+.MetaSword-container.expanded {
+    width: 12px;
+}
+
+.MetaSword-online {
+    position: relative;
+    top: 68px;
+    width: 5px;
+    height: 33px;
+    background-color: lightseagreen;
+    transition: 0.1s;
+    border-radius: 0px 20px 20px 0px;
+    z-index: -1;
+    margin-left: 1px;
+    box-shadow: 0px 0px 3px 0px rgba(0, 0, 0);
+}
+
+.MetaSword-online.expanded {
+    width: 48px;
+}
+
+.MetaSword-left-Menu {
+    width: 53px;
+    height: 145px;
+    transform: translateY(30px);
+    opacity: 0;
+    transition: 0.5s;
+}
+
+.MetaSword-main-View-line {
+    width: 100%;
+    height: 2px;
+    background-image: linear-gradient(to right, #ffffff, #3f3f3f)
+}
+
+.MetaSword-main-View-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -45%);
+    min-height: 80%;
+    width: 455px;
+}
+
+#MetaSword-input-output {
+    display: flex;
+    border-top: 1px solid #2d2d2d;
+    padding: 5px;
+    color: #00ab00;
+    font-size: 16px;
+}
+
+#MetaSword-terminal {
+    height: 240px;
+    padding: 0px 15px;
+    border: 1px #00a18c;
+    overflow-y: auto;
+}
+
+#MetaSword-terminal>p {
+    color: #03bd03;
+    font-size: 16px;
+    font-family: cursive;
+    font-weight: bold;
+}
+
+#MetaSword-terminal::-webkit-scrollbar {
+    width: 5px;
+    height: 6px;
+}
+
+#MetaSword-terminal::-webkit-scrollbar-thumb {
+    background-color: #464646;
+    border-radius: 3px;
+}
+
+#MetaSword-prompt {
+    flex: 0 0 auto;
+    color: #00ab00;
+    font-size: 16px;
+    font-family: cursive;
+    font-weight: bold;
+}
+
+#MetaSword-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    caret-color: #00ab00;
+    color: #00ab00;
+    background: #0c0c0c;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: cursive;
+}
+
+
+.MetaSword-toolsView {
+    width: 430px;
+    height: 26px;
+    position: fixed;
+    bottom: -9px;
+    background-color: rgb(28 28 28);
+    color: #fff;
+    border-radius: 6px;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+    padding: 2px;
+    margin-left: 10px;
+    overflow: hidden;
+}
+
+.MetaSword-center-avatar {
+    width: 100%;
+    text-align: center;
+    margin-top: 65px;
+}
+
+.MetaSword-main-View-search {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.fa-home {
+    position: absolute;
+    font-size: 27px;
+    color: #fff;
+    padding: 7px 16px;
+    transition: 0.1s;
+    /* background: antiquewhite; */
+}
+
+.fa-home:active {
+    font-size: 25px;
+    filter: blur(1px);
+}
+
+
+.fa-cube {
+    position: absolute;
+    font-size: 23px;
+    color: #fff;
+    top: 37px;
+    padding: 9px 16px;
+    transition: 0.1s;
+    /* background: aqua; */
+}
+
+.fa-cube:active {
+    font-size: 21px;
+    filter: blur(1px);
+}
+
+.ChatGPTbutton {
+    position: absolute;
+    top: 77px;
+    width: 32px;
+    padding: 4px 11px;
+    transition: 0.1s;
+    /* background: blueviolet; */
+}
+
+
+.ChatGPTbutton:active {
+    width: 30px;
+    filter: blur(1px);
+}
+
+.fa-tags {
+    position: absolute;
+    font-size: 21px;
+    color: #fff;
+    top: 116px;
+    padding: 7px 16px;
+    transition: 0.1s;
+    /* background: brown; */
+}
+
+.fa-tags:active {
+    font-size: 19px;
+    filter: blur(1px);
+}
+
+
+.fa-eercast {
+    position: absolute;
+    top: 50%;
+    left: 13px;
+    transform: translateY(-50%);
+    color: #fff;
+    font-size: 20px;
+}
+
+.fa-window-minimize {
+    -webkit-app-region: no-drag;
+    position: absolute;
+    top: 50%;
+    right: 35px;
+    font-size: 9px;
+    padding: 11px 13px;
+    transform: translateY(-50%);
+    color: #fff;
+    transition: all 0.5s;
+}
+
+.fa-window-minimize:hover {
+    color: lightseagreen;
+}
+
+.transition-effect {
+    transition: opacity 0.2s;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px 5px;
+    max-height: 204px;
+    overflow-y: auto;
+    padding: 4px 10px;
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+}
+
+.grid-container::-webkit-scrollbar {
+    width: 4px;
+    height: 6px;
+}
+
+.grid-container::-webkit-scrollbar-thumb {
+    background-color: #464646;
+    border-radius: 4px;
+}
+
+.grid-container button {
+    height: 29px;
+}
+
+.toolsbutton {
+    background-color: #1a1a1a;
+    color: #fff;
+    border-radius: 6px;
+    transition: 0.2s;
+    box-shadow: 2px 2px 1px rgb(0 120 87);
+    font-family: BalooDa2-SemiBold;
+    border: none;
+}
+
+.toolsbutton:focus {
+    outline: none;
+    box-shadow: 2px 2px 0px #00b69e;
+}
+
+.toolbar-button {
+    color: #fff;
+    background-color: #292929;
+    margin: 1px 2px;
+    padding: 0px 13px;
+    font-family: 'BalooDa2-SemiBold';
+    font-size: 13px;
+    border-radius: 5px;
+    border: none;
+    user-select: none;
+}
+
+.toolbar-button:focus {
+    outline: none;
+    box-shadow: 2px 2px 0px #00a18c;
+}
+
+input[type="search"] {
+    width: 95%;
+    padding: 3px 8px;
+    border: 2px solid #353535;
+    border-radius: 5px;
+    outline: none;
+    background: #0e0e0e;
+    font-family: 'BalooDa2-SemiBold', sans-serif;
+    caret-color: white;
+    color: white;
+    transition: border-color 0.2s;
+    user-select: none;
+}
+
+input[type="search"]:focus {
+    border-color: #00a18c;
+}
+
+input[type="search"]:hover {
+    border-color: #00a18c;
+}
+
+.button-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    width: 100px
+}
+
+.button-container img {
+    width: 20px;
+    height: auto;
+    margin-right: 3px;
+    border-radius: 3px;
+    margin-left: 5px;
+}
+
+.button-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#homePage,
+#toolsPage,
+#ChatGPTPage,
+#aboutPage {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    user-select: none;
+}
+
+.avatar {
+    width: 80px;
+    border-radius: 100%;
+    transition: all 0.4s;
+    user-select: none;
+}
+
+.avatar:hover {
+    width: 90px;
+}
+
+
+.logo-left {
+    opacity: 0;
+    position: absolute;
+    width: 255px;
+    transform: translate(-50%, -50%);
+    animation: slide-in1 0.3s ease-in-out forwards;
+    top: 50%;
+    left: 50%;
+    filter: invert(1);
+}
+
+.logo-right {
+    opacity: 0;
+    position: absolute;
+    width: 255px;
+    transform: translate(-50%, -50%);
+    top: 50%;
+    left: 50%;
+    animation: slide-in2 0.3s ease-in-out forwards;
+    /* filter: drop-shadow(-2px -2px 3px rgb(255, 255, 255)); */
+}
+
+#center-logo {
+    position: fixed;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -45%);
+    width: 251px;
+    opacity: 0;
+    transition: all 0.4s;
+    border-radius: 30px 30px 35px 35px;
+    animation: fade-in 0.5s 0.3s forwards;
+}
+
+
+#center-logo:hover {
+    box-shadow: 0px 7px 1px -4px rgba(0, 161, 140, 1);
+}

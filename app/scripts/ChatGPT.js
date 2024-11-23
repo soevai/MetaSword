@@ -1,7 +1,6 @@
 const axios = require('axios');
-
-var inputElement = document.getElementById("input");
-var terminalElement = document.getElementById("terminal");
+var inputElement = document.getElementById("MetaSword-input");
+var terminalElement = document.getElementById("MetaSword-terminal");
 
 inputElement.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
@@ -9,13 +8,12 @@ inputElement.addEventListener("keydown", function (event) {
         if (inputText === "") {
             return;
         }
-
         if (inputText === "clear") {
             terminalElement.innerHTML = "";
             inputElement.value = "";
             return;
         }
-
+        
         var newParagraph = document.createElement("p");
         newParagraph.textContent = `< ${inputText}`;
         terminalElement.appendChild(newParagraph);

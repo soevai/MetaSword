@@ -2,9 +2,10 @@
 <html lang="zh">
 <!-- 
     @Author: 发光的神（VoxShadow）
-    @Date: 2023/08/31 ~ 2024/11/10
-    @Version: 1.0.3
+    @Date: 2023/08/31 ~ 2024/11/21
+    @Version: 1.0.4
 -->
+
 <head>
     <meta charset="utf-8" />
     <title>Frida IDE</title>
@@ -15,40 +16,54 @@
 </head>
 
 <body>
-    <img src="./logo.png" class="overlay-image">
-    <div class="run-top-view">
-        <button class="processbutton"><img src="./search.png"></button>
-        <input type="text" class="Pidinput" placeholder="PID" value="0">
-        <label class="switch">
-            <input type="checkbox" id="toggleButton">
-            <span class="slider"></span>
-        </label>
+    <div class="frida-IDE-view">
+        <div class="frida-IDE-topbar-view">
+            <img class="frida-IDE-logo" src="./image/logo.png">
+            <p class="frida-IDE-title">Frida IDE</p>
+            <div class="frida-IDE-topview">
+                <button class="frida-IDE-search"><img src="./image/search.png"></button>
+                <input type="text" class="frida-IDE-PID" value="0">
+                <label class="frida-IDE-switch">
+                    <input type="checkbox" id="frida-IDE-toggleButton">
+                    <span class="frida-IDE-slider"></span>
+                </label>
+                <button class="frida-IDE-topButton minimize-btn" id="minimize-btn">_</button>
+                <button class="frida-IDE-topButton maximize-btn" id="maximizeButton">⛶</button>
+                <button class="frida-IDE-topButton close-btn" id="closeButton">X</button>
+            </div>
+        </div>
 
-    </div>
-    <div id="editor">function main() {
-    console.log("Hello, Frida!");
+        <div id="editor">function main() {
+    console.log("Hello, MetaSword!");
 }
 main();</div>
-    <div id="drop-zone" style="visibility: hidden;">
-        <div id="dropArea"><img src="./box.png"></div>
+    </div>
+
+    <img src="./image/GL.png" class="frida-IDE-overlay-image">
+    <div id="frida-IDE-dropZone" style="visibility: hidden;">
+        <div id="frida-IDE-dropArea"><img src="./image/box.png"></div>
+    </div>
+
+    <div id="frida-IDE-ProcessWindow" class="frida-IDE-draggable">
+        <div class="frida-IDE-window-header">
+            <button class="frida-IDE-window-closebtn">X</button>
+        </div>
+
+        <div class="frida-IDE-Listwindow">
+            <div class="frida-IDE-search-container">
+                <input type="text" id="frida-IDE-processSearch" placeholder="请输入进程名">
+            </div>
+            <div class="frida-IDE-table-container">
+                <table>
+                    <tbody id="frida-IDE-processes">
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
     </div>
-    <div id="processListWindow" class="window draggable">
-        <div class="window-header">
-            <span class="window-title">进程列表</span>
-            <button class="window-close-btn">X</button>
-        </div>
-        <div class="search-container">
-            <input type="text" id="processSearch" placeholder="在这里搜索...">
-        </div>
-        <div class="table-container">
-            <table>
-                <tbody id="processes">
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <script src="./js/main.js"></script>
-    <script src="./js/Function.js"></script>
+    <script src="./js/fridaEditor.js"></script>
+    <script src="./js/fridaFunc.js"></script>
+
 </body>
 </html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设置面板</title>
+  <link rel="stylesheet" type="text/css" href="./css/main.css">
+</head>
+
+<body>
+  <div class="button-panel">
+    <button class="fullscreen-btn" id="fullscreen-btn">⛶</button>
+    <button class="close-btn" id="close-btn">×</button>
+  </div>
+
+  <div class="settings-panel" id="settings-panel">
+    <div class="setting-card">
+      <h3>动画设置</h3>
+      <label for="volume">启动动画 ( 默认：开启 )</label>
+      <button class="button" id="toggle-animation">关闭</button>
+
+      <label for="volume">动画速度 ( 默认：1.1 )</label>
+      <input type="range" id="volume" name="volume" min="0.6" max="3" step="0.1" value="1.1">
+      <div class="range-value" id="rangeValue">当前值：1.1</div>
+    </div>
+
+    <div class="setting-card">
+      <h3>主题设置</h3>
+      <label for="theme">( 默认：黑色 )</label>
+      <button class="button" id="toggle-theme">切换</button>
+    </div>
+
+    <div class="setting-card">
+      <h3>版本更新</h3>
+      <label for="theme">( v1.0.4 )</label>
+      <button class="button" id="toggle-update">获取</button>
+    </div>
+  </div>
+
+  <div class="popup" id="popup">
+    <div class="popup-content">
+      <p id="popup-message"></p>
+      <button id="popup-ok">明白</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('toggle-update').addEventListener('click', async (event) => {
+      try {
+        const response = await fetch('https://meta.natapp4.cc/robots.txt');
+        const data = await response.text();
+        const versionMatch = data.match(/version:\s*([v\d.]+)/);
+
+        if (versionMatch) {
+          const newVersion = versionMatch[1];
+          const currentVersion = 'v1.0.4';
+          if (compareVersions(newVersion, currentVersion) > 0) {
+            showPopup(`发现新版本: ${newVersion}`);
+          } else {
+            showPopup('当前已最新版本');
+          }
+        } else {
+          showPopup('版本信息未找到');
+        }
+      } catch (err) {
+        console.error('版本信息获取失败:', err);
+        showPopup('版本信息获取失败');
+      }
+    });
+
+    function showPopup(message) {
+      const popup = document.getElementById('popup');
+      const popupMessage = document.getElementById('popup-message');
+      popupMessage.textContent = message;
+      popup.style.display = 'flex';
+    }
+
+    document.getElementById('popup-ok').addEventListener('click', () => {
+      document.getElementById('popup').style.display = 'none';
+    });
+
+    function compareVersions(v1, v2) {
+      const parts1 = v1.split('.').map(Number);
+      const parts2 = v2.split('.').map(Number);
+
+      for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+        const part1 = parts1[i] || 0;
+        const part2 = parts2[i] || 0;
+        if (part1 > part2) return 1;
+        if (part1 < part2) return -1;
+      }
+      return 0;
+    }
+
+    const fs = require('fs');
+    const path = require('path');
+    const xml2js = require('xml2js');
+
+    const CONFIG_PATH = path.join(__dirname, '..', 'config', 'config.xml');
+    let result;
+
+    const loadConfig = async () => {
+      try {
+        const data = await fs.promises.readFile(CONFIG_PATH, 'utf8');
+        result = await xml2js.parseStringPromise(data);
+        const settings = result.config.settings[0];
+
+        const animationStart = settings.tag.find(tag => tag.$.name === 'AnimationStart').$.value;
+        const animationSpeed = settings.tag.find(tag => tag.$.name === 'AnimationSpeed').$.value;
+        const theme = settings.tag.find(tag => tag.$.name === 'Theme').$.value;
+
+        const toggleAnimationButton = document.getElementById('toggle-animation');
+        const volumeInput = document.getElementById('volume');
+        const rangeValue = document.getElementById('rangeValue');
+        const toggleThemeButton = document.getElementById('toggle-theme');
+
+        toggleAnimationButton.textContent = animationStart === 'enabled' ? '关闭' : '开启';
+
+        volumeInput.value = animationSpeed;
+        rangeValue.textContent = `当前值：${animationSpeed}`;
+
+        document.body.classList.add(theme);
+        toggleThemeButton.textContent = '切换';
+
+      } catch (err) {
+        console.error('加载配置失败:', err);
+      }
+    };
+
+    const toggleAnimationStart = async (button) => {
+      const newStatus = button.textContent === '开启' ? 'enabled' : 'disabled';
+      button.textContent = newStatus === 'enabled' ? '关闭' : '开启';
+      await saveConfig('AnimationStart', newStatus);
+    };
+
+    const updateRangeValue = async (input, rangeValue) => {
+      const speed = input.value;
+      rangeValue.textContent = `当前值：${speed}`;
+      await saveConfig('AnimationSpeed', speed);
+    };
+
+    const toggleTheme = async (button) => {
+      showPopup('敬请期待');
+      return;
+      const currentTheme = document.body.classList.contains('dark') ? 'dark' : 'light';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.body.classList.remove('light', 'dark');
+      document.body.classList.add(newTheme);
+      button.textContent = '切换';
+      await saveConfig('Theme', newTheme);
+    };
+
+    const saveConfig = async (name, value) => {
+      try {
+        const settings = result.config.settings[0];
+        const tag = settings.tag.find(tag => tag.$.name === name);
+        if (tag) {
+          tag.$.value = value;
+        }
+
+        const builder = new xml2js.Builder();
+        const xmlData = builder.buildObject(result);
+        await fs.promises.writeFile(CONFIG_PATH, xmlData, 'utf8');
+      } catch (err) {
+        console.error('保存配置失败:', err);
+      }
+    };
+
+    document.getElementById('toggle-animation').addEventListener('click', (event) => {
+      const button = event.target;
+      toggleAnimationStart(button);
+    });
+
+    document.getElementById('volume').addEventListener('input', (event) => {
+      const input = event.target;
+      const rangeValue = document.getElementById('rangeValue');
+      updateRangeValue(input, rangeValue);
+    });
+
+    document.getElementById('toggle-theme').addEventListener('click', (event) => {
+      const button = event.target;
+      toggleTheme(button);
+    });
+
+    let isScrolling = false;
+    const settingsPanel = document.getElementById('settings-panel');
+    settingsPanel.addEventListener('wheel', (e) => {
+      if (e.deltaY !== 0) {
+        if (!isScrolling) {
+          isScrolling = true;
+          const scrollAmount = e.deltaY;
+          const currentPosition = settingsPanel.scrollLeft;
+          const targetPosition = currentPosition + scrollAmount;
+          settingsPanel.scrollTo({
+            left: targetPosition,
+            behavior: 'smooth'
+          });
+
+          setTimeout(() => {
+            isScrolling = false;
+          }, 100);
+        }
+        e.preventDefault();
+      }
+    });
+
+    document.getElementById('close-btn').addEventListener('click',
+      () => window.close()
+    );
+
+    loadConfig();
+  </script>
+</body>
+
+</html>
