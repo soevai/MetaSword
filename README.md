@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/Author-VoxShadow-orange" alt="Author" />
 </p>
 
-<img src="https://meta.natapp4.cc/usr/uploads/2024/08/4075296637.png" alt="MetaSword"/>
+<img src="https://meta.natapp4.cc/usr/uploads/2024/12/2120434451.png" alt="MetaSword"/>
 
 ## 简介
 
