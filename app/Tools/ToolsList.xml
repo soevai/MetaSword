@@ -264,7 +264,7 @@
     <item>
       <text>TscanPlus</text>
       <imagePath>/icons/TscanPlus.ico</imagePath>
-      <executablePath>/Tools/Web/TscanPlus/run.exe</executablePath>
+      <executablePath>/Tools/Web/TscanPlus/run.vbs</executablePath>
     </item>
 
     <item>
