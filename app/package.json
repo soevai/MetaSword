@@ -1,19 +1,6 @@
 {
-  "name": "次元剑",
-  "version": "1.0.3",
-  "description": "发光的神 </> 次元剑 - 逆向工具箱",
-  "main": "home.js",
-  "author": "发光的神",
-  "license": "MIT",
-  "scripts": {
-    "start": "electron ."
-  },
-  "devDependencies": {
-    "electron": "^26.6.10"
-  },
-  "dependencies": {
-    "axios": "^1.5.0",
-    "ps-list": "^8.1.1",
-    "xml2js": "^0.6.2"
-  }
+  "name": "MetaSword",
+  "version": "1.0.5",
+  "description": "逆向工具箱 - 次元剑",
+  "main": "home.js"
 }
