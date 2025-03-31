@@ -45,6 +45,7 @@ const createControlWindow = () => {
 
 const toggleMainWindowVisibility = () => {
     if (isToggling) return;
+    console.log(1)
     isToggling = true;
     windows.main ? (windows.main.isVisible() ? windows.main.hide() : windows.main.show()) : createMainWindow();
     setTimeout(() => (isToggling = false), 300);
