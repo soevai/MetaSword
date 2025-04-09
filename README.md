@@ -26,13 +26,14 @@
 ## 功能展示
 
 ### 动态 Logo
-
-![Dynamic Logo](https://pic1.imgdb.cn/item/67dfbedf88c538a9b5c50cf6.gif)
-
+<p align="center">
+  <img src="https://pic1.imgdb.cn/item/67dfbedf88c538a9b5c50cf6.gif" alt="Dynamic Logo" width="50%" />
+</p>
 
 ### 工具分类
-
-![Tool Categories](https://pic1.imgdb.cn/item/67dfba9088c538a9b5c50c20.gif)
+<p align="center">
+  <img src="https://pic1.imgdb.cn/item/67dfba9088c538a9b5c50c20.gif" alt="Tool Categories" width="50%" />
+</p>
 
 - **逆向工程工具**
   - 提供一站式的反汇编、动态调试与静态分析支持。
