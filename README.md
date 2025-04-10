@@ -24,7 +24,7 @@
 
 ## ⚙️ 功能展示
 
-### 🌐 动态 Logo
+### 💣 动态 Logo
 <p align="center">
   <img src="https://pic1.imgdb.cn/item/67dfbedf88c538a9b5c50cf6.gif" alt="Dynamic Logo" width="60%" />
 </p>
@@ -34,7 +34,7 @@
   <img src="https://pic1.imgdb.cn/item/67dfba9088c538a9b5c50c20.gif" alt="Tool Categories" width="60%" />
 </p>
 
-### 🔧 逆向工程工具
+### 🏴 逆向工程工具
 
 - 提供一站式的反汇编、调试与分析体验
 - 支持主流工具协作：
@@ -43,7 +43,7 @@
   - `dnSpy`
   - `Cheat engine`
 
-### 🔧 渗透测试工具
+### 👤 渗透测试工具
 
 - 护网打点、协议分析、CTF 对抗全覆盖
 - 支持常用环境：
