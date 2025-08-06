@@ -12,6 +12,7 @@ const { ipcRenderer } = require('electron');
 const path = require("path");
 const fs = require("fs");
 
+
 const FridatoggleButton = document.getElementById("Frida-IDE-toggleButton");
 var Fridapath = path.join(__dirname, '..', '..', '/Plugins/Frida');
 var FridaPidinput = document.querySelector(".Frida-IDE-PID");
@@ -175,6 +176,8 @@ FridacloseButton.addEventListener('click', function () {
 function clearOutputContent() {
     const Fridacontent = document.getElementById('Frida-IDE-output-content');
     if (Fridacontent) Fridacontent.innerHTML = '';
+    outputBuffer.length = 0;
+    logLines.length = 0;
 }
 
 function showOutputPanel(panel) {
@@ -280,14 +283,23 @@ function getAndroidDeviceId() {
     });
 }
 
-function appendOutput(text, type = null, withTime = true) {
+let outputBuffer = [];
+let flushTimeout = null;
+const logLines = [];
+
+function bufferOutput(line, type = null, withTime = true) {
+    outputBuffer.push({ line, type, withTime });
+    if (!flushTimeout) {
+        flushTimeout = setTimeout(flushBufferedOutput, 100);
+    }
+}
+
+
+function flushBufferedOutput() {
     const Fridaout = document.getElementById('Frida-IDE-output-content');
-    if (!Fridaout || !Fridaout.isConnected) return;
+    if (!Fridaout || !Fridaout.isConnected || outputBuffer.length === 0) return;
 
     const now = new Date();
-    const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
-    const timestamp = withTime ? `<span style="color:#888;">[${timeStr}]</span> ` : '';
-
     const tagStyles = {
         'Started': 'color:#7FC363;font-weight:bold;',
         'Done': 'color:#7FC363;font-weight:bold;',
@@ -295,26 +307,33 @@ function appendOutput(text, type = null, withTime = true) {
         'Warning': 'color:#FFD700;font-weight:bold;',
     };
 
-    const html = text.replace(/\[([^\]]+)\]/g, (match, rawTag) => {
-        const safeTag = rawTag.replace(/ /g, '&nbsp;');
-        const tagName = rawTag.trim();
-        if (type && tagStyles[type]) {
-            return `<span style="${tagStyles[type]}">[${safeTag}]</span>`;
-        }
-        const matchedStyle = Object.entries(tagStyles).find(([key]) => tagName.endsWith(key));
-        if (matchedStyle) {
-            return `<span style="${matchedStyle[1]}">[${safeTag}]</span>`;
-        }
-        return `[${safeTag}]`;
+    const htmlLines = outputBuffer.map(({ line, type, withTime }) => {
+        const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
+        const timestamp = withTime ? `<span style="color:#888;">[${timeStr}]</span> ` : '';
+
+        const html = line.replace(/\[([^\]]+)\]/g, (match, rawTag) => {
+            const safeTag = rawTag.replace(/ /g, '&nbsp;');
+            const tagName = rawTag.trim();
+            if (type && tagStyles[type]) {
+                return `<span style="${tagStyles[type]}">[${safeTag}]</span>`;
+            }
+            const matchedStyle = Object.entries(tagStyles).find(([key]) => tagName.endsWith(key));
+            if (matchedStyle) {
+                return `<span style="${matchedStyle[1]}">[${safeTag}]</span>`;
+            }
+            return `[${safeTag}]`;
+        });
+
+        return timestamp + html;
     });
 
-    Fridaout.innerHTML += timestamp + html + '<br>';
-    requestAnimationFrame(() => {
-        Fridaout.scrollTop = Fridaout.scrollHeight;
-    });
-    setTimeout(() => {
-        Fridaout.scrollTop = Fridaout.scrollHeight;
-    }, 20);
+    logLines.push(...htmlLines);
+
+    Fridaout.innerHTML = logLines.join('<br>') + '<br>';
+    Fridaout.scrollTop = Fridaout.scrollHeight;
+
+    outputBuffer = [];
+    flushTimeout = null;
 }
 
 const FridamodeSelect = document.getElementById('Frida-IDE-modeSelect');
@@ -386,7 +405,7 @@ function createOutputPanel() {
 
     const content = document.createElement('div');
     content.id = 'Frida-IDE-output-content';
-    content.contentEditable = true;
+    content.contentEditable = false;
     content.spellcheck = false;
     panel.appendChild(content);
 
@@ -578,42 +597,42 @@ FridatoggleButton.addEventListener("change", async function () {
                 cwd: path.dirname(batPath),
             });
 
-            appendOutput(`[🚀Hook ${platform}.${mode}]`, 'Started');
+            bufferOutput(`[🚀Hook ${platform}.${mode}]`, 'Started');
 
             let stdoutBuffer = '';
             window.FridaProc.stdout.on("data", (data) => {
-                const text = iconv.decode(data, "utf-8");
+                const text = iconv.decode(data, "gbk");
                 stdoutBuffer += text;
                 const lines = stdoutBuffer.split(/\r?\n/);
                 stdoutBuffer = lines.pop();
                 for (let line of lines) {
-                    if (line.trim()) appendOutput(line);
+                    if (line.trim()) bufferOutput(line);
                 }
             });
 
             window.FridaProc.stdout.on("end", () => {
-                if (stdoutBuffer.trim()) appendOutput(stdoutBuffer.trim());
+                if (stdoutBuffer.trim()) bufferOutput(stdoutBuffer.trim());
                 stdoutBuffer = '';
             });
 
             window.FridaProc.stderr.on("data", (data) => {
-                const errorText = iconv.decode(data, "utf-8");
+                const errorText = iconv.decode(data, "gbk");
                 const lines = errorText.split(/\r?\n/);
                 for (let line of lines) {
                     const cleanLine = line.replace(/\x1b\[[0-9;]*m/g, '');
                     if (cleanLine.trim()) {
                         FridatoggleButton.checked = false;
-                        appendOutput(`[Error] ${cleanLine}`, 'error');
+                        bufferOutput(`[Error] ${cleanLine}`, 'error');
                     }
                 }
             });
 
             window.FridaProc.on("error", (err) => {
-                appendOutput(`[Error] ${err.message}`, 'error');
+                bufferOutput(`[Error] ${err.message}`, 'error');
             });
 
             window.FridaProc.on("close", () => {
-                appendOutput(`[✓ Done]`, 'Done');
+                bufferOutput(`[✓ Done]`, 'Done');
             });
         });
 
