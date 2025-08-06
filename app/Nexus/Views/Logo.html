@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<!--
+  @Author      发光的神 (VoxShadow)
+  @Version     1.0.6
+  @Since       2023-08-31
+  @LastUpdated 2025-08-01
+  @Description 次元剑启动开场动画界面
+  @License     MIT
+-->
+
+<head>
+    <meta charset="utf-8">
+    <title>Startup Animation</title>
+    <style>
+        * {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        video {
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            overflow-x: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <video id="video" autoplay="true">
+        <source src="../Assets/Videos/Startup.webm" type="video/webm">
+    </video>
+
+    <audio id="audio" autoplay>
+        <source src="../Assets/Sounds/Startup.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const fs = require('fs');
+        const path = require('path');
+        const xml2js = require('xml2js');
+
+        const CONFIG_PATH = path.join(__dirname, '..', 'Views', 'Config.xml');
+        const video = document.getElementById('video');
+
+        const loadAnimationSpeed = async () => {
+            try {
+                const data = await fs.promises.readFile(CONFIG_PATH, 'utf8');
+                const result = await xml2js.parseStringPromise(data);
+                const tag = result.config.settings[0].tag.find(t => t.$.name === 'AnimationSpeed');
+                return tag ? parseFloat(tag.$.value) : 1.8;
+            } catch {
+                return 1.8;
+            }
+        };
+
+        (async () => {
+            ipcRenderer.send('createMainWindow');
+            video.playbackRate = await loadAnimationSpeed();
+            video.addEventListener('ended', () => ipcRenderer.send('close-transparent'));
+        })();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,708 @@
+* {
+    margin: 0px;
+    padding: 0px;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+body {
+    padding: 5px;
+    overflow: hidden;
+}
+
+@font-face {
+    font-family: 'BalooDa2';
+    src: url('../Fonts/FontAwesome/SemiBold.ttf');
+}
+
+
+#editor {
+    width: 100%;
+    background-color: #282C34;
+    height: calc(100vh - 43px);
+    overflow-y: auto;
+    border-radius: 0px 0px 8px 8px;
+}
+
+.ace_scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ace_scrollbar::-webkit-scrollbar-track {
+    background: #292929;
+}
+
+.ace_scrollbar::-webkit-scrollbar-thumb {
+    background: #2c3f4b;
+}
+
+.Frida-IDE-logo {
+    width: 40px;
+    margin-left: 5px;
+    filter: drop-shadow(2px 4px 6px black);
+    -webkit-app-region: no-drag;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1); 
+}
+
+.Frida-IDE-logo:active {
+    transform: scale(0.85);
+}
+
+
+.Frida-IDE-title {
+    font-weight: bold;
+    font-size: 18px;
+    font-family: BalooDa2;
+    filter: drop-shadow(2px 4px 6px black);
+}
+
+.Frida-IDE-topview {
+    position: fixed;
+    right: 5px;
+    display: flex;
+    gap: 3px;
+    align-items: center;
+}
+
+
+.Frida-IDE-PID {
+    width: 70px;
+    height: 22px;
+    padding: 0 0px;
+    margin-right: 10px;
+    border: none;
+    outline: none;
+    background-color: #373c47;
+    color: #979797;
+    border-radius: 5px;
+    font-size: 15px;
+    text-align: center;
+    font-family: fantasy;
+    margin-left: 10px;
+    -webkit-app-region: no-drag;
+}
+
+.Frida-IDE-search {
+    border: none;
+    padding: 3px 10px;
+    background: #333843;
+    margin-left: 5px;
+    border-radius: 5px;
+    transition: background-color 0.2s ease-in-out;
+    float: left;
+    -webkit-app-region: no-drag;
+}
+
+.Frida-IDE-search:hover {
+    background-color: #2d4557;
+}
+
+.Frida-IDE-search:active {
+    background-color: #22262c;
+}
+
+.Frida-IDE-search>img {
+    width: 25px;
+    filter: brightness(1);
+    pointer-events: none;
+}
+
+.Frida-IDE-switch {
+    position: relative;
+    display: inline-block;
+    width: 45px;
+    height: 18px;
+    margin-right: 10px;
+}
+
+.Frida-IDE-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.Frida-IDE-topButton {
+    width: 35px;
+    height: 25px;
+    border: none;
+    border-radius: 5px;
+    background-color: #2c3f4b;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    float: left;
+    display: inline-block;
+    margin-right: 5px;
+    text-align: center;
+    -webkit-app-region: no-drag;
+}
+
+
+
+.Frida-IDE-topButton:hover {
+    background-color: #3a4d5c;
+}
+
+.Frida-IDE-topButton:active {
+    background-color: #22262c;
+}
+
+.minimize-btn {
+    font-size: 18px;
+}
+
+.close-btn {
+    font-size: 18px;
+    color: #f56666;
+}
+
+
+.Frida-IDE-header {
+    width: 100%;
+    height: 38px;
+    background-color: #22262e;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    border-radius: 8px 8px 0px 0px;
+    -webkit-app-region: drag;
+}
+
+
+input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border: 1px solid #aaa;
+    border-radius: 2px;
+    background-color: #fff;
+    cursor: pointer;
+    position: relative;
+}
+
+input[type="radio"]:checked::before {
+    content: "";
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 6px;
+    height: 6px;
+    background-color: #2196F3;
+    border-radius: 1px;
+}
+
+.Frida-IDE-slider {
+    position: absolute;
+    cursor: pointer;
+    float: right;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #2c3f4b;
+    transition: .4s;
+    border-radius: 34px;
+    -webkit-app-region: no-drag;
+}
+
+.Frida-IDE-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 1px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+}
+
+input:checked+.Frida-IDE-slider {
+    background-color: #2c3f4b;
+}
+
+input:checked+.Frida-IDE-slider:before {
+    background-color: rgb(0, 154, 214);
+    transform: translateX(25px);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+td {
+    padding: 5px;
+    text-align: left;
+    border-bottom: 2px solid #ddd;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+.Frida-IDE-Listwindow {
+    padding: 5px 15px 10px 15px;
+}
+
+.Frida-IDE-android {
+    border: none;
+    padding: 0px 10px;
+    background: #333843;
+    border-radius: 5px;
+    transition: background-color 0.2s ease-in-out;
+    float: left;
+    -webkit-app-region: no-drag;
+}
+
+.Frida-IDE-android:hover {
+    background-color: #2d4557;
+}
+
+.Frida-IDE-android:active {
+    background-color: #22262c;
+}
+
+.Frida-IDE-android>img {
+    width: 25px;
+    filter: brightness(1);
+    pointer-events: none;
+}
+
+.ace_scrollbar-h {
+    height: 7px !important;
+    bottom: 0px !important;
+    background-color: #1e1e1e;
+}
+
+.ace_scrollbar-h>div {
+    background-color: #4b6eaf;
+    border-radius: 3px;
+}
+
+.Frida-IDE-overlay-image {
+    position: fixed;
+    right: 0px;
+    bottom: -3px;
+    width: 200px;
+    pointer-events: none;
+    filter: opacity(0.5);
+    animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 0.5;
+    }
+}
+
+#Frida-IDE-dropArea {
+    width: 150px;
+    padding: 30px 40px;
+    border: 2px dashed #777777;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-100px, -50px);
+    filter: opacity(0.6);
+    display: flex;
+    justify-content: center;
+    background: #282C34;
+}
+
+
+#Frida-IDE-dropArea>img {
+    width: 70px;
+    height: 70px;
+    filter: opacity(0.7);
+}
+
+
+#Frida-IDE-dropZone {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0s 0.3s;
+}
+
+#Frida-IDE-dropZone.show {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.3s ease, visibility 0.3s;
+}
+
+#Frida-IDE-output-content {
+    margin: 0px;
+    white-space: pre-wrap;
+    overflow-y: auto;
+    height: 100%;
+    user-select: text;
+    font-size: 16px;
+    font-family: emoji;
+    outline: none;
+}
+
+#Frida-IDE-output-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+#Frida-IDE-output-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#Frida-IDE-output-content::-webkit-scrollbar-thumb {
+    background-color: #666;
+    border-radius: 3px;
+}
+
+#Frida-IDE-output-content::-webkit-scrollbar-thumb:hover {
+    background-color: #888;
+}
+
+#Frida-IDE-output-context-menu {
+    position: fixed;
+    background: #222;
+    color: #ccc;
+    border: 1px solid #555;
+    font-size: 14px;
+    padding: 5px 0;
+    z-index: 9999;
+    border-radius: 6px;
+    min-width: 120px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: opacity 150ms ease, transform 150ms ease;
+    opacity: 0;
+    transform: scale(0.90);
+    cursor: default;
+}
+
+#Frida-IDE-contextmenu {
+    position: absolute;
+    display: none;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 120ms ease, transform 120ms ease;
+    z-index: 9999;
+    background: #2c2f36;
+    color: white;
+    border: 1px solid #444;
+    font-size: 13px;
+    border-radius: 4px;
+    min-width: 200px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+}
+
+#Frida-IDE-output-panel {
+    position: fixed;
+    bottom: 0px;
+    width: calc(100% - 10px);
+    color: rgb(220, 220, 220);
+    font-family: monospace;
+    font-size: 15px;
+    line-height: 1.6;
+    border-top: 1px solid rgb(68, 68, 68);
+    padding: 8px;
+    box-sizing: border-box;
+    z-index: 8888;
+    background: rgba(40, 44, 52, 0.84);
+    border-radius: 0px 0px 8px 8px;
+    transform: translateY(100%);
+    transition: transform 0.3s ease-out 0s;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.Frida-IDE-process-row {
+    animation: slideIn 0.2s ease-out;
+}
+
+
+#Frida-IDE-ai-prompt::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+#Frida-IDE-ai-prompt::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#Frida-IDE-ai-prompt::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(100, 100, 100, 0.3), rgba(150, 150, 150, 0.3));
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+#Frida-IDE-ai-prompt::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(160, 160, 160, 0.6), rgba(200, 200, 200, 0.6));
+}
+
+
+#Frida-IDE-ai-prompt {
+    position: absolute;
+    background: rgb(27, 31, 39);
+    color: rgba(255, 255, 255, 1);
+    border: 1px solid rgb(58, 63, 75);
+    border-radius: 6px;
+    font-size: 14px;
+    padding: 8px 10px;
+    width: 400px;
+    max-height: 300px;
+    resize: vertical;
+    outline: none;
+    box-shadow: rgba(0, 0, 0, 0.6) 0px 3px 10px;
+    line-height: 1.5;
+    overflow: auto;
+    white-space: pre-wrap;
+    font-family: emoji;
+    z-index: 999;
+}
+
+::selection {
+    background: #535353;
+    color: rgb(255, 255, 255);
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.Frida-IDE-draggable {
+    position: absolute;
+    top: 100px;
+    left: 100px;
+    width: 320px;
+    background: #ffffff;
+    color: #333;
+    border-radius: 13px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+    font-family: "Segoe UI", "PingFang SC", sans-serif;
+    z-index: 9999;
+    display: none;
+    animation: fadeInble 0.25s ease;
+    border: 1px solid #e0e0e0;
+}
+
+@keyframes fadeInble {
+    from {
+        transform: scale(0.96);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.Frida-IDE-window-header {
+    height: 33px;
+    background: #f9f9f9;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 8px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.Frida-IDE-window-closebtn {
+    background: transparent;
+    color: #888;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 5px 10px;
+    transition: all 0.2s ease;
+}
+
+.Frida-IDE-window-closebtn:hover {
+    background: #ffebeb;
+    color: #e53935;
+}
+
+/* Tabs */
+.Frida-IDE-tabs {
+    display: flex;
+    background: #fafafa;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.Frida-IDE-tab {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    font-size: 16px;
+    color: #666;
+    cursor: pointer;
+    background: #fafafa;
+    border-right: 1px solid #eee;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.Frida-IDE-tab:last-child {
+    border-right: none;
+}
+
+.Frida-IDE-tab.active {
+    background: #ffffff;
+    color: #2196f3;
+    font-weight: bold;
+    border-bottom: 2px solid #2196f3;
+}
+
+.Frida-IDE-tabcontent {
+    display: none;
+    padding: 0px 14px 0px;
+}
+
+.Frida-IDE-tabcontent.active {
+    display: block;
+}
+
+.Frida-IDE-search-container {
+    padding: 5px;
+}
+
+.Frida-IDE-search-container input {
+    width: 88%;
+    padding: 8px 8px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    color: #333;
+    outline: none;
+    transition: border 0.2s ease;
+    font-weight: 500;
+    margin-left: 10px;
+}
+
+.Frida-IDE-search-container input:focus {
+    border-color: #2196f3;
+    background: #fff;
+}
+
+.Frida-IDE-table-container {
+    max-height: 255px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.Frida-IDE-table-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.Frida-IDE-table-container::-webkit-scrollbar-thumb {
+    background-color: #bbb;
+    border-radius: 3px;
+}
+
+.Frida-IDE-table-container::-webkit-scrollbar-track {
+    background-color: #eee;
+}
+
+.Frida-IDE-table-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.Frida-IDE-table-container tr {
+    transition: background 0.2s ease;
+}
+
+.Frida-IDE-table-container tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.Frida-IDE-table-container tr:hover {
+    background-color: #e3f2fd;
+}
+
+.Frida-IDE-table-container td {
+    font-size: 15px;
+    color: #333;
+    border-bottom: 1px solid #ccc;
+    font-weight: 600;
+    max-width: 180px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.Frida-IDE-table-container input[type="checkbox"] {
+    transform: scale(1.2);
+    accent-color: #2196f3;
+    margin-right: 6px;
+}
+
+#Frida-IDE-processes-android {
+    display: table;
+    width: 100%;
+}
+
+#Frida-IDE-processes-android tr {
+    display: table-row;
+}
+
+#Frida-IDE-processes-android td {
+    display: table-cell;
+    padding: 5px;
+    border-bottom: 1px solid #ccc;
+}
+
+#Frida-IDE-modeSelector {
+    display: none;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 5px 12px;
+    gap: 6px;
+    background: #fafafa;
+    font-size: 13px;
+    color: #555;
+    border-radius: 0 0 8px 8px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+    text-align: end;
+}
+
+#Frida-IDE-modeSelector label {
+    font-weight: 500;
+    font-size: 13px;
+    color: #888;
+}
+
+#Frida-IDE-modeSelect {
+    padding: 3px 0px;
+    font-size: 13px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    color: #333;
+    outline: none;
+    transition: border 0.2s ease;
+    font-weight: 600;
+}

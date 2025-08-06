@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<!--
+  @Author      发光的神 (VoxShadow)
+  @Version     1.0.6
+  @Since       2023-08-31
+  @LastUpdated 2025-08-01
+  @Description 次元剑设置面板配置
+  @License     MIT
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设置面板</title>
+  <link rel="stylesheet" type="text/css" href="../CSS/ControLMain.css">
+</head>
+
+<body>
+  <div class="button-panel">
+    <div class="stitle">⌥</div>
+    <button class="close-btn" id="close-btn">×</button>
+  </div>
+  <div class="settings-container">
+
+    <div class="settings-panel" id="settings-panel">
+      <div class="setting-card">
+        <h3>动画设置</h3>
+        <label for="volume">动画速度 (默认：1.8)</label>
+
+        <div class="media-container">
+          <video class="media-item" autoplay muted loop preload="auto">
+            <source src="../Assets/Videos/ControL.mp4" type="video/mp4">
+          </video>
+        </div>
+
+        <input type="range" id="volume" name="volume" min="0.8" max="3" step="0.1" value="1.5">
+        <div class="range-value" id="rangeValue">当前值：1.5</div>
+
+        <label for="toggle-animation">启动动画 (默认：开启)</label>
+        <button class="button" id="toggle-animation">关闭</button>
+      </div>
+
+      <div class="setting-card">
+        <h3>AI 设置</h3>
+        <label for="deepseek-Tips">DeepSeek API Key</label>
+        <input type="password" id="deepseek-key" placeholder=" sk-xxxx... " class="input" maxlength="100"
+          style="margin-top: 4px; ">
+
+        <button class="button" id="save-deepseek-key" style="margin-top: 10px;">保存</button>
+        <button class="button" id="clear-deepseek-key" style="margin-top: 6px; margin-left: 10px;">清除</button>
+      </div>
+
+      <div class="setting-card">
+        <h3>版本更新</h3>
+        <label for="theme">版本号 [ v1.0.6 ]</label>
+        <button class="button" id="toggle-update">检查</button>
+      </div>
+      <!-- 防止半边 -->
+      <p></p>
+
+    </div>
+  </div>
+
+  <div class="popup" id="popup">
+    <div class="popup-content">
+      <p id="popup-message"></p>
+      <button id="popup-ok">明白</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    document.getElementById('save-deepseek-key').addEventListener('click', () => {
+      const keyInput = document.getElementById('deepseek-key');
+      const key = keyInput.value.trim();
+      const status = document.getElementById('deepseek-status');
+
+      if (key.length === 0) {
+        showToast("不能为空");
+        return;
+      }
+
+      localStorage.removeItem('DeepseekApiKey');
+      localStorage.setItem('DeepseekApiKey', key);
+      showToast("已保存", 'success');
+    });
+
+    document.getElementById('clear-deepseek-key').addEventListener('click', () => {
+      localStorage.removeItem('DeepseekApiKey');
+      document.getElementById('deepseek-key').value = '';
+      showToast("已清空", 'error');
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedKey = localStorage.getItem('DeepseekApiKey');
+      const input = document.getElementById('deepseek-key');
+      if (savedKey && input) {
+        input.value = savedKey;
+      }
+    });
+
+    let toastTimer = null;
+
+    function showToast(message, type = 'default') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+
+      if (type === 'success') {
+        toast.style.backgroundColor = 'rgba(40, 167, 69, 0.95)';
+        toast.style.color = '#fff';
+      } else if (type === 'error') {
+        toast.style.backgroundColor = 'rgba(220, 53, 69, 0.95)';
+        toast.style.color = '#fff';
+      } else {
+        toast.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+        toast.style.color = '#111';
+      }
+
+      toast.style.transition = 'none';
+      toast.style.right = '35px';
+      toast.style.bottom = '25px';
+      toast.style.transform = 'translateX(100%)';
+      toast.offsetHeight;
+
+      toast.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+      toast.style.transform = 'translateX(0%)';
+      toast.style.opacity = '1';
+
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        toast.style.opacity = '0';
+      }, 1800);
+    }
+
+  </script>
+
+  <script>
+
+    const fs = require('fs');
+    const path = require('path');
+    const xml2js = require('xml2js');
+
+    document.getElementById('toggle-update').addEventListener('click', async () => {
+      try {
+        const text = await fetch('https://meta.natapp4.cc/robots.txt').then(r => r.text());
+
+        const remote = text.match(/version:\s*v?([\d.]+)/i)?.[1];
+        const local = document.querySelector('label[for="theme"]')?.innerText.match(/v?([\d.]+)/i)?.[1];
+
+        if (!remote || !local) return;
+
+        if (compareVersions(remote, local) > 0) {
+          showPopup(`新版本: v${remote}`);
+        } else {
+          showPopup('已最新版');
+        }
+      } catch (err) {
+        showPopup('检测失败');
+        console.error(err);
+      }
+    });
+
+
+    function showPopup(message) {
+      const popup = document.getElementById('popup');
+      const popupMessage = document.getElementById('popup-message');
+      popupMessage.textContent = message;
+      popup.style.display = 'flex';
+    }
+
+    document.getElementById('popup-ok').addEventListener('click', () => {
+      const popup = document.getElementById('popup');
+      const message = document.getElementById('popup-message').textContent;
+
+      if (message.includes("新版本")) {
+        require('child_process').exec('start "" "https://meta.natapp4.cc/tools/sword/"');
+      }
+
+      popup.style.display = 'none';
+    });
+
+    function compareVersions(v1, v2) {
+      const parts1 = v1.split('.').map(Number);
+      const parts2 = v2.split('.').map(Number);
+
+      for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+        const part1 = parts1[i] || 0;
+        const part2 = parts2[i] || 0;
+        if (part1 > part2) return 1;
+        if (part1 < part2) return -1;
+      }
+      return 0;
+    }
+
+    const CONFIG_PATH = path.join(__dirname, '..', 'Views', 'config.xml');
+    let result;
+
+    const loadConfig = async () => {
+      try {
+        const data = await fs.promises.readFile(CONFIG_PATH, 'utf8');
+        result = await xml2js.parseStringPromise(data);
+        const settings = result.config.settings[0];
+
+        const animationStart = settings.tag.find(tag => tag.$.name === 'AnimationStart').$.value;
+        const video = document.querySelector('.media-item');
+        if (animationStart === 'disabled') {
+          video.pause();
+        }
+
+        const animationSpeed = settings.tag.find(tag => tag.$.name === 'AnimationSpeed').$.value;
+        const toggleAnimationButton = document.getElementById('toggle-animation');
+        const volumeInput = document.getElementById('volume');
+        const rangeValue = document.getElementById('rangeValue');
+
+        toggleAnimationButton.textContent = animationStart === 'enabled' ? '关闭' : '开启';
+        video.playbackRate = animationSpeed;
+        volumeInput.value = animationSpeed;
+        rangeValue.textContent = `当前值：${animationSpeed}`;
+
+      } catch (err) {
+      }
+    };
+    loadConfig();
+
+    const toggleAnimationStart = async (button) => {
+      const newStatus = button.textContent === '开启' ? 'enabled' : 'disabled';
+      button.textContent = newStatus === 'enabled' ? '关闭' : '开启';
+
+      const video = document.querySelector('.media-item');
+      if (newStatus === 'disabled') {
+        video.currentTime = 5;
+        video.pause();
+      } else {
+        video.play();
+      }
+
+      await saveConfig('AnimationStart', newStatus);
+    };
+
+    document.getElementById('volume').addEventListener('input', (event) => {
+      const input = event.target;
+      const rangeValue = document.getElementById('rangeValue');
+      updateRangeValue(input, rangeValue);
+    });
+
+    const saveConfig = async (name, value) => {
+      try {
+        const settings = result.config.settings[0];
+        const tag = settings.tag.find(tag => tag.$.name === name);
+        if (tag) {
+          tag.$.value = value;
+        }
+
+        const builder = new xml2js.Builder();
+        const xmlData = builder.buildObject(result);
+        await fs.promises.writeFile(CONFIG_PATH, xmlData, 'utf8');
+      } catch (err) {
+      }
+    };
+
+    document.getElementById('toggle-animation').addEventListener('click', (event) => {
+      const button = event.target;
+      toggleAnimationStart(button);
+    });
+
+    const updateRangeValue = async (input, rangeValue) => {
+      const speed = input.value;
+      rangeValue.textContent = `当前值：${speed}`;
+      const video = document.querySelector('.media-item');
+      video.playbackRate = speed;
+      await saveConfig('AnimationSpeed', speed);
+    };
+
+
+    document.getElementById('close-btn').addEventListener('click',
+      () => window.close()
+    );
+
+
+  </script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const settingsPanel = document.querySelector(".settings-panel");
+      const settingCards = document.querySelectorAll(".setting-card");
+      let isHoveringCard = false;
+
+      settingsPanel.addEventListener("wheel", function (event) {
+        if (!isHoveringCard) {
+          event.preventDefault();
+          settingsPanel.scrollLeft += event.deltaY * 2;
+        }
+      });
+      settingCards.forEach(card => {
+        card.addEventListener("mouseover", function () {
+          isHoveringCard = true;
+          card.classList.add("active");
+        });
+
+        card.addEventListener("mouseout", function (event) {
+          if (!card.contains(event.relatedTarget)) {
+            isHoveringCard = false;
+            card.classList.remove("active");
+          }
+        });
+
+        card.addEventListener("wheel", function (event) {
+          event.stopPropagation();
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<!--
+  @Author      发光的神 (VoxShadow)
+  @Version     1.0.6
+  @Since       2023-08-31
+  @LastUpdated 2025-08-01
+  @Description 次元剑工具异常提示界面
+  @License     MIT
+-->
+
+<head>
+    <meta charset="UTF-8" />
+    <title>工具异常提示</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: "Segoe UI", "PingFang SC", sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            height: 100vh;
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            -webkit-app-region: drag;
+        }
+
+        .dialog {
+            background: rgba(20, 20, 20, 0.88);
+            backdrop-filter: blur(18px);
+            border-radius: 16px;
+            border: 2px solid rgb(255, 77, 80);
+            width: 320px;
+            padding: 26px 24px 22px;
+            color: #eee;
+            text-align: center;
+            animation: fadeInScale 0.3s ease-out;
+        }
+
+        .icon-wrap {
+            background: #ff4d4f;
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 5px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-wrap svg {
+            width: 28px;
+            height: 28px;
+            fill: #fff;
+        }
+
+        .dialog-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+
+        .dialog-message {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+
+        .dialog-message strong {
+            color: #fff;
+        }
+
+        .dialog-button {
+            -webkit-app-region: no-drag;
+            width: 100%;
+            padding: 11px 0;
+            background: linear-gradient(135deg, #ff4d4f, #d3001e);
+            color: #fff;
+            border: none;
+            font-size: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.25s ease;
+            box-shadow: 0 4px 10px rgba(255, 77, 79, 0.4);
+        }
+
+        .dialog-button:hover {
+            background: linear-gradient(135deg, #e8001e, #ff6666);
+            transform: translateY(-1px);
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dialog">
+        <div class="icon-wrap">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2Zm1 14h-2v-2h2v2Zm0-4h-2V7h2v5Z" />
+            </svg>
+        </div>
+        <div class="dialog-title">工具异常提示</div>
+        <div class="dialog-message">
+            工具可能被杀毒软件误报查杀了<br />
+            请在工具箱中搜索 <strong>ChekTools</strong><br />
+            启动它来检查工具完整性 💻
+        </div>
+        <button class="dialog-button" onclick="window.close()">明白了</button>
+    </div>
+</body>
+
+</html>
