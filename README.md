@@ -34,7 +34,7 @@
   <img src="https://pic1.imgdb.cn/item/6891ccaf58cb8da5c80665bd.webp" alt="Tool Categories" width="60%" />
 </p>
 
-### 🏴 逆向工程工具
+### 🏴 逆向分析工具
 
 - 提供一站式的反汇编、调试与分析体验
 - 支持主流工具协作：
