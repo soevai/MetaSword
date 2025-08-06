@@ -26,12 +26,12 @@
 
 ### 💣 动态 Logo
 <p align="center">
-  <img src="https://pic1.imgdb.cn/item/67dfbedf88c538a9b5c50cf6.gif" alt="Dynamic Logo" width="60%" />
+  <img src="https://pic1.imgdb.cn/item/689208f658cb8da5c806ef10.webp" alt="Dynamic Logo" width="60%" />
 </p>
 
 ### 🧰 工具分类界面
 <p align="center">
-  <img src="https://pic1.imgdb.cn/item/67dfba9088c538a9b5c50c20.gif" alt="Tool Categories" width="60%" />
+  <img src="https://pic1.imgdb.cn/item/6891ccaf58cb8da5c80665bd.webp" alt="Tool Categories" width="60%" />
 </p>
 
 ### 🏴 逆向工程工具
