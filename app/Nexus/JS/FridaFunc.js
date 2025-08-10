@@ -970,6 +970,7 @@ ipcRenderer.on('file-selected', (event, filePath) => {
                 mode: 'Spawn'
             };
         }
+
         if (FridatoggleButton) {
             FridatoggleButton.checked = true;
             FridatoggleButton.dispatchEvent(new Event("change"));
