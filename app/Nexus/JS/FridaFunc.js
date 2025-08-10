@@ -521,7 +521,6 @@ function createOutputPanel() {
             if (newHeight < 80) {
                 panel.style.transform = 'translateY(100%)';
                 setTimeout(() => {
-                    panel.remove();
                     clearOutputContent();
                 }, 300);
                 isDragging = false;
@@ -971,7 +970,6 @@ ipcRenderer.on('file-selected', (event, filePath) => {
                 mode: 'Spawn'
             };
         }
-
         if (FridatoggleButton) {
             FridatoggleButton.checked = true;
             FridatoggleButton.dispatchEvent(new Event("change"));
