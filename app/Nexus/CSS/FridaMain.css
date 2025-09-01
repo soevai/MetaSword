@@ -348,8 +348,9 @@ tbody tr:hover {
 }
 
 #Frida-IDE-output-content {
-    margin: 0px;
-    white-space: pre-wrap;
+    margin: 0;
+    white-space: pre;
+    overflow-x: auto;
     overflow-y: auto;
     height: 100%;
     user-select: text;
@@ -357,9 +358,8 @@ tbody tr:hover {
     font-family: emoji;
     outline: none;
 }
-
 #Frida-IDE-output-content::-webkit-scrollbar {
-    width: 4px;
+    width: 5px;
 }
 
 #Frida-IDE-output-content::-webkit-scrollbar-track {
@@ -372,6 +372,23 @@ tbody tr:hover {
 }
 
 #Frida-IDE-output-content::-webkit-scrollbar-thumb:hover {
+    background-color: #888;
+}
+
+#Frida-IDE-output-content::-webkit-scrollbar:horizontal {
+    height: 5px;
+}
+
+#Frida-IDE-output-content::-webkit-scrollbar-track:horizontal {
+    background: transparent;
+}
+
+#Frida-IDE-output-content::-webkit-scrollbar-thumb:horizontal {
+    background-color: #666;
+    border-radius: 3px;
+}
+
+#Frida-IDE-output-content::-webkit-scrollbar-thumb:horizontal:hover {
     background-color: #888;
 }
 
