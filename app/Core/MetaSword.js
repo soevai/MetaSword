@@ -28,7 +28,6 @@ if (!gotTheLock) {
     } else {
       try { createMainWindow?.(); } catch { }
     }
-
     if (windows.frida && !windows.frida.isDestroyed()) {
       if (windows.frida.isMinimized()) windows.frida.restore();
       windows.frida.show();
@@ -157,7 +156,6 @@ const registerIpcHandlers = () => {
   ];
 
   ipcEvents.forEach(([event, handler]) => ipcMain.on(event, handler));
-
   let isFileDialogOpen = false;
   ipcMain.on('open-file-window', async (event) => {
     if (isFileDialogOpen) return;
