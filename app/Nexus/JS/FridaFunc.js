@@ -12,6 +12,7 @@ const { ipcRenderer } = require('electron');
 const path = require("path");
 const fs = require("fs");
 
+
 const FridatoggleButton = document.getElementById("Frida-IDE-toggleButton");
 var Fridapath = path.join(__dirname, '..', '..', '/Plugins/Frida');
 var FridaPidinput = document.querySelector(".Frida-IDE-PID");
