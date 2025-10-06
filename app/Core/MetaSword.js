@@ -44,6 +44,50 @@ const commonWebPreferences = {
   devTools: true
 };
 
+const filePath = path.join(__dirname, '..', 'Nexus', 'Views', 'config.xml');
+let lastWidth = 0;
+let lastHeight = 0;
+let resizeTimeout = null;
+
+const updateWindowSizeInConfig = (width, height) => {
+  if (Math.abs(width - lastWidth) < 10 && Math.abs(height - lastHeight) < 10) {
+    return;
+  }
+  lastWidth = width;
+  lastHeight = height;
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    fs.readFile(filePath, 'utf8', (err, data) => {
+      if (err) { console.error('Error reading config.xml:', err); return; }
+
+      xml2js.parseString(data, (err, result) => {
+        if (err) { console.error('Error parsing XML:', err); return; }
+
+        try {
+          const settings = result?.config?.settings?.[0]?.tag || [];
+          const metaWindowWidthTag = settings.find(tag => tag.$?.name === 'MetaWindowWidth');
+          const metaWindowHeightTag = settings.find(tag => tag.$?.name === 'MetaWindowHeight');
+
+          if (metaWindowWidthTag) metaWindowWidthTag.$.value = width.toString();
+          if (metaWindowHeightTag) metaWindowHeightTag.$.value = height.toString();
+
+          const builder = new xml2js.Builder();
+          const xml = builder.buildObject(result);
+          fs.writeFile(filePath, xml, (err) => {
+            if (err) {
+              console.error('Error writing config.xml:', err);
+            } else {
+              console.log(`Updated config.xml with width: ${width} and height: ${height}`);
+            }
+          });
+        } catch (e) {
+          console.error('Error updating config.xml:', e);
+        }
+      });
+    });
+  }, 500);
+};
+
 const createWindow = (name, options, filePath) => {
   windows[name] = new BrowserWindow({ ...options, webPreferences: commonWebPreferences });
 
@@ -55,18 +99,31 @@ const createWindow = (name, options, filePath) => {
   windows[name].on('closed', () => (windows[name] = null));
 };
 
+let mainWindowWidth = 550;
+let mainWindowHeight = 343;
+
 const createMainWindow = () => {
-  createWindow('main', {
-    width: 550,
-    height: 345,
+  windows.main = new BrowserWindow({
+    width: mainWindowWidth,
+    height: mainWindowHeight,
     minWidth: 550,
-    minHeight: 345,
+    minHeight: 343,
     maxWidth: 810,
     maxHeight: 500,
     frame: false,
     resizable: true,
     transparent: true,
-  }, path.join(viewsPath, 'Home.html'));
+    webPreferences: {
+      contextIsolation: false,
+      nodeIntegration: true
+    }
+  });
+
+  windows.main.loadFile(path.join(viewsPath, 'Home.html'));
+  windows.main.on('resize', () => {
+    const [newWidth, newHeight] = windows.main.getSize();
+    updateWindowSizeInConfig(newWidth, newHeight);
+  });
 
   globalShortcut.register('Ctrl+P', () => windows.main?.webContents?.openDevTools());
 };
@@ -85,7 +142,6 @@ const createTransparentWindow = () => {
   }, path.join(viewsPath, 'Logo.html'));
 
   windows.logo?.setIgnoreMouseEvents(true);
-  // globalShortcut.register('Ctrl+I', () => windows.logo?.webContents?.openDevTools());
 };
 
 const createFridaIDEWindow = () => {
@@ -100,7 +156,7 @@ const createFridaIDEWindow = () => {
   }, path.join(viewsPath, 'Frida.html'));
 
   Menu.setApplicationMenu(null);
-  // globalShortcut.register('Ctrl+U', () => windows.frida?.webContents?.openDevTools());
+  globalShortcut.register('Ctrl+U', () => windows.frida?.webContents?.openDevTools());
 };
 
 const createControlWindow = () => {
@@ -113,7 +169,6 @@ const createControlWindow = () => {
   }, path.join(viewsPath, 'ControL.html'));
 
   Menu.setApplicationMenu(null);
-  // globalShortcut.register('Ctrl+O', () => windows.control?.webContents?.openDevTools());
 };
 
 const toggleMainWindowVisibility = () => {
@@ -156,6 +211,7 @@ const registerIpcHandlers = () => {
   ];
 
   ipcEvents.forEach(([event, handler]) => ipcMain.on(event, handler));
+
   let isFileDialogOpen = false;
   ipcMain.on('open-file-window', async (event) => {
     if (isFileDialogOpen) return;
@@ -181,7 +237,6 @@ const registerIpcHandlers = () => {
 };
 
 const loadToolsList = () => {
-  const filePath = path.join(__dirname, '..', 'Nexus', 'Views', 'config.xml');
   fs.readFile(filePath, 'utf8', (err, data) => {
     if (err) { console.error(err); return; }
     xml2js.parseString(data, (err, result) => {
@@ -189,6 +244,12 @@ const loadToolsList = () => {
       try {
         const settings = result?.config?.settings?.[0]?.tag || [];
         const animationStartTag = settings.find(tag => tag.$?.name === 'AnimationStart');
+        const metaWindowWidthTag = settings.find(tag => tag.$?.name === 'MetaWindowWidth');
+        const metaWindowHeightTag = settings.find(tag => tag.$?.name === 'MetaWindowHeight');
+
+        mainWindowWidth = metaWindowWidthTag ? parseInt(metaWindowWidthTag.$.value) : 550;
+        mainWindowHeight = metaWindowHeightTag ? parseInt(metaWindowHeightTag.$.value) : 343;
+
         if (animationStartTag) {
           const animationStatus = String(animationStartTag.$.value || '').trim().toLowerCase();
           animationStatus === 'enabled' ? createTransparentWindow() : createMainWindow();
@@ -203,6 +264,7 @@ const loadToolsList = () => {
   });
 };
 
+
 const createErrorDialog = () => {
   if (windows.error && !windows.error.isDestroyed()) {
     windows.error.focus();
@@ -216,7 +278,6 @@ const createErrorDialog = () => {
     alwaysOnTop: true,
     resizable: false
   }, path.join(viewsPath, 'Dialog.html'));
-  // globalShortcut.register('Ctrl+E', () => windows.error?.webContents?.openDevTools());
 };
 
 ipcMain.handle('ErrorDialog', () => createErrorDialog());
