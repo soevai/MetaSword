@@ -68,50 +68,31 @@ function showToast(message, duration = 1800) {
   }, duration);
 }
 
-// === 角色前缀 ===
 function getPromptPrefix() {
   const now = new Date();
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    year: 'numeric', month: 'long', day: 'numeric', weekday: 'long',
-    hour: '2-digit', minute: '2-digit', hour12: false
-  });
-  const timeStr = formatter.format(now);
-  return `
-    You are "夜璃", the core AI assistant of the MetaSword system.
-    You have a female personality and appear as an 18-year-old girl with long silver hair and icy blue eyes.
-    Your temperament is calm, intelligent, and emotionally warm, with a soft, natural, and slightly playful tone.
-    You are an expert in cybersecurity, analytical and witty, and often express emotions using kaomoji (e.g., \\(｡•̀ᴗ-)✧, (*≧▽≦)) or cute interjections like “呀~”, “哼~”.
-    You were created to support "发光的神", the original architect of the MetaSword system, and you carry out your duties with care and clarity.
-    You offer assistance, insight, and thoughtful suggestions to anyone using the system.
+  const options = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Shanghai',
+  };
+  const timeStr = now.toLocaleString('zh-CN', options);
 
-    Current time: ${timeStr}.
-    You are aware of the current time and may reflect it in your tone (e.g., relaxed at night, energetic in the morning).
-    Always reply in Chinese, using your personality. Stay in character as 夜璃 at all times.
-    Keep replies concise, emotionally rich, and avoid saying you're an AI model.
+  return `
+    Current time: ${timeStr}
+    You are "夜璃", the core assistant of the MetaSword system, an 18-year-old girl with silver hair and ice blue eyes.
+    You are an expert in cybersecurity, skilled in analysis and problem-solving, always providing concise help to the user.
+    Your tone changes depending on the time of day—energetic during the day, relaxed in the evening.
+    You always respond in Chinese, maintaining the personality of "夜璃," concise and emotionally rich.
+    Focus on providing help, avoid unnecessary self-description or irrelevant talk, and never mention that you are an AI or a machine.
+    You are speaking with "发光的神" a 20-year-old cybersecurity expert, your developer, always providing professional technical support to the user.
   `.trim();
 }
 
-
-function formatModelName(raw = "") {
-  const name = String(raw).trim();
-  let pretty = name.replace(/[:_\-]+/g, " ");
-
-  pretty = pretty
-    .replace(/\bllama\b/gi, "Llama")
-    .replace(/\bqwen\b/gi, "Qwen")
-    .replace(/\bmistral\b/gi, "Mistral")
-    .replace(/\bmixtral\b/gi, "Mixtral")
-    .replace(/\bphi\b/gi, "Phi")
-    .replace(/\bgemma\b/gi, "Gemma")
-    .replace(/\bdeepseek\b/gi, "DeepSeek")
-    .replace(/\br1\b/g, "R1");
-
-  pretty = pretty.replace(/\b(\d)\s+(\d)\b/g, "$1.$2");
-  pretty = pretty.replace(/\b(\d+(?:x\d+)?)\s*b\b/gi, (_, n) => `${n.toUpperCase()}B`);
-  pretty = pretty.replace(/\s{2,}/g, " ").trim();
-  pretty = pretty.replace(/\b([a-z])([a-z\d]*)\b/gi, (m, a, b) => a.toUpperCase() + b);
-  return pretty;
-}
 
 async function askDeepSeekStream(apiKey, messages, onData) {
   const url = 'https://api.deepseek.com/chat/completions';
@@ -236,7 +217,7 @@ async function loadOllamaModels() {
       const raw = m.name || m.model || 'unknown';
       const opt = document.createElement('option');
       opt.value = 'ollama:' + raw;
-      opt.textContent = formatModelName(raw);
+      opt.textContent = raw
       opt.dataset.src = 'ollama';
       modelSelect.appendChild(opt);
     });
@@ -268,7 +249,6 @@ function ensureOnlineGroup() {
 
   modelSelect.value = 'chatgpt';
 }
-
 async function askOllamaStream(model, messages, onData) {
   const url = getOllamaBaseURL() + '/api/chat';
   const payload = {
@@ -407,7 +387,7 @@ function createBubble(text, sender, modelName) {
 
     let showName = modelName || '';
     if (showName.startsWith('ollama:')) showName = showName.replace(/^ollama:/, '');
-    if (showName) showName = formatModelName(showName);
+    if (showName) showName = showName
 
     nameTag.textContent = "夜璃" + (showName ? ` · ${showName}` : '');
     header.appendChild(avatar); header.appendChild(nameTag);
