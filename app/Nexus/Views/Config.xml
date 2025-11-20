@@ -3,5 +3,7 @@
   <settings>
     <tag name="AnimationStart" value="disabled"/>
     <tag name="AnimationSpeed" value="1.8"/>
+    <tag name="MetaWindowWidth" value="550"/>
+    <tag name="MetaWindowHeight" value="343"/>
   </settings>
 </config>
