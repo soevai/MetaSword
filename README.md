@@ -67,5 +67,5 @@
 > 敢于挑战突破边界的人，才能唤醒它全部的潜力。
 
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0a0a0a,100:1a1a2a&height=130&text=⚔️%20MetaSword&fontColor=aa88ff&fontAlignY=40&desc=次元剑%20逆流而生&descSize=15&descAlignY=70" style="width: 100%;" />
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0a0a0a,100:1a1a2a&height=130&text=⚔️%20MetaSword&fontColor=aa88ff&fontAlignY=40&desc=次元剑%20%20逆流而上&descSize=15&descAlignY=70" style="width: 100%;" />
 </p>
