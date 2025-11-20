@@ -197,10 +197,35 @@ function getOllamaBaseURL() {
   return (localStorage.getItem('OllamaBaseURL') || 'http://127.0.0.1:11434').replace(/\/$/, '');
 }
 
-async function loadOllamaModels() {
+async function isOllamaReachable(baseUrl) {
   try {
-    const res = await fetch(getOllamaBaseURL() + '/api/tags');
-    if (!res.ok) throw new Error('无法连接本地 Ollama');
+    await fetch(baseUrl, {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(1000),
+      mode: 'no-cors'
+    });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function loadOllamaModels() {
+  const baseUrl = getOllamaBaseURL();
+  
+  if (!await isOllamaReachable(baseUrl)) {
+    return;
+  }
+  
+  try {
+    const res = await fetch(`${baseUrl}/api/tags`, {
+      method: 'GET',
+      mode: 'cors',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-cache'
+    });
+
+    if (!res.ok) throw new Error('接口响应异常');
     const data = await res.json();
     const models = Array.isArray(data?.models) ? data.models : [];
 
@@ -216,11 +241,12 @@ async function loadOllamaModels() {
     models.forEach(m => {
       const raw = m.name || m.model || 'unknown';
       const opt = document.createElement('option');
-      opt.value = 'ollama:' + raw;
-      opt.textContent = raw
+      opt.value = `ollama:${raw}`;
+      opt.textContent = raw;
       opt.dataset.src = 'ollama';
       modelSelect.appendChild(opt);
     });
+
   } catch (e) {
   }
 }
