@@ -67,5 +67,5 @@
 > 江湖路远，愿你执剑，走向更高的地方。
 
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=rect&color=ffffff&height=130&text=⚔️%20MetaSword&fontColor=0a0a0a&fontAlignY=40&desc=次元剑%20-%20逆流而上&descSize=15&descAlignY=70" style="width: 100%;" />
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=ffffff&height=130&text=⚔️%20MetaSword&fontColor=0a0a0a&fontAlignY=40&desc=次元剑%20-%20逆流而上%20⧉%20字节暗流实验室&descSize=15&descAlignY=70" style="width: 100%;" />
 </p>
