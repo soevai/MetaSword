@@ -26,12 +26,12 @@
 
 ### 💣 动态 Logo
 <p align="center">
-  <img src="https://pic1.imgdb.cn/item/689208f658cb8da5c806ef10.webp" alt="Dynamic Logo" width="60%" />
+  <img src="https://pic1.imgdb.cn/item/689208f658cb8da5c806ef10.webp" alt="Dynamic Logo" width="50%" />
 </p>
 
 ### 🧰 工具分类界面
 <p align="center">
-  <img src="https://pic1.imgdb.cn/item/6891ccaf58cb8da5c80665bd.webp" alt="Tool Categories" width="60%" />
+  <img src="https://pic1.imgdb.cn/item/6891ccaf58cb8da5c80665bd.webp" alt="Tool Categories" width="50%" />
 </p>
 
 ### 🏴 逆向分析工具
