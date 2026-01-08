@@ -64,7 +64,7 @@
 ## 👁‍🗨 作者留言
 
 > **次元剑的力量，是使用者的勇气与智慧。**  
-> 江湖路远，愿你执剑，走向更高的地方。
+> 江湖路远，愿你执剑，走向更远的地方。
 
 <p align="center">
   <img src="https://capsule-render.vercel.app/api?type=rect&color=ffffff&height=130&text=⚔️%20MetaSword&fontColor=0a0a0a&fontAlignY=40&desc=次元剑%20-%20逆流而上%20⧉%20字节暗流实验室&descSize=15&descAlignY=70" style="width: 100%;" />
