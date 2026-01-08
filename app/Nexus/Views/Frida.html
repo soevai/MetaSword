@@ -3,9 +3,9 @@
 
 <!--
   @Author      发光的神 (VoxShadow)
-  @Version     1.0.6
+  @Version     1.0.7
   @Since       2023-08-31
-  @LastUpdated 2025-08-01
+  @LastUpdated 2026-01-07
   @Description 次元剑 Frida IDE 扩展插件模块
   @License     MIT
 -->
@@ -16,6 +16,7 @@
   <script src="../JS/AceMain/ace.js"></script>
   <script src="../JS/AceMain/ext-language_tools.js"></script>
   <script src="../JS/AceMain/beautify.min.js"></script>
+  <link rel="stylesheet" href="../Fonts/FontAwesome/css/font-awesome.min.css" />
   <link rel="stylesheet" type="text/css" href="../CSS/FridaMain.css">
 </head>
 
@@ -32,9 +33,9 @@
           <input type="checkbox" id="Frida-IDE-toggleButton">
           <span class="Frida-IDE-slider"></span>
         </label>
-        <button class="Frida-IDE-topButton minimize-btn" id="minimize-btn">_</button>
+        <button class="Frida-IDE-topButton fa fa-window-minimize" id="minimize-btn"></button>
         <button class="Frida-IDE-topButton maximize-btn" id="maximizeButton">⛶</button>
-        <button class="Frida-IDE-topButton close-btn" id="closeButton">x</button>
+        <button class="Frida-IDE-topButton fa fa-times" id="closeButton"></button>
       </div>
     </div>
 
@@ -49,7 +50,7 @@
 
   <div id="Frida-IDE-ProcessWindow" class="Frida-IDE-draggable">
     <div class="Frida-IDE-window-header">
-      <button class="Frida-IDE-window-closebtn">X</button>
+      <button class="Frida-IDE-window-closebtn fa fa-times"></button>
     </div>
 
     <div class="Frida-IDE-tabs">

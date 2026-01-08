@@ -1,8 +1,8 @@
 /**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.6
+ * @Version     1.0.7
  * @Since       2023-08-31
- * @LastUpdated 2025-08-01
+ * @LastUpdated 2026-01-07
  * @Description Electron 主进程入口
  * @License     MIT
  */
@@ -49,6 +49,11 @@ let lastWidth = 0;
 let lastHeight = 0;
 let resizeTimeout = null;
 
+let mainWindowWidth = 550;
+let mainWindowHeight = 343;
+let controlWindowWidth = 550;
+let controlWindowHeight = 343;
+
 const updateWindowSizeInConfig = (width, height) => {
   if (Math.abs(width - lastWidth) < 10 && Math.abs(height - lastHeight) < 10) {
     return;
@@ -76,8 +81,6 @@ const updateWindowSizeInConfig = (width, height) => {
           fs.writeFile(filePath, xml, (err) => {
             if (err) {
               console.error('Error writing config.xml:', err);
-            } else {
-              console.log(`Updated config.xml with width: ${width} and height: ${height}`);
             }
           });
         } catch (e) {
@@ -99,9 +102,6 @@ const createWindow = (name, options, filePath) => {
   windows[name].on('closed', () => (windows[name] = null));
 };
 
-let mainWindowWidth = 550;
-let mainWindowHeight = 343;
-
 const createMainWindow = () => {
   windows.main = new BrowserWindow({
     width: mainWindowWidth,
@@ -109,10 +109,11 @@ const createMainWindow = () => {
     minWidth: 550,
     minHeight: 343,
     maxWidth: 810,
-    maxHeight: 500,
+    maxHeight: 480,
     frame: false,
     resizable: true,
     transparent: true,
+    alwaysOnTop: false,
     webPreferences: {
       contextIsolation: false,
       nodeIntegration: true
@@ -122,9 +123,11 @@ const createMainWindow = () => {
   windows.main.loadFile(path.join(viewsPath, 'Home.html'));
   windows.main.on('resize', () => {
     const [newWidth, newHeight] = windows.main.getSize();
+    controlWindowWidth = newWidth;
+    controlWindowHeight = newHeight;
     updateWindowSizeInConfig(newWidth, newHeight);
   });
-
+  
   globalShortcut.register('Ctrl+P', () => windows.main?.webContents?.openDevTools());
 };
 
@@ -160,15 +163,35 @@ const createFridaIDEWindow = () => {
 };
 
 const createControlWindow = () => {
-  createWindow('control', {
-    width: 551,
-    height: 343,
-    frame: false,
-    resizable: false,
-    transparent: true
-  }, path.join(viewsPath, 'ControL.html'));
+  if (windows.control && !windows.control.isDestroyed()) {
+    if (windows.control.isMinimized()) windows.control.restore();
+    if (!windows.control.isVisible()) windows.control.show();
+    windows.control.focus();
+    return;
+  }
 
+  const controlWindowOptions = {
+    width: (controlWindowWidth + 2),
+    height: controlWindowHeight,
+    frame: false,
+    minWidth: 552,
+    minHeight: 343,
+    maxWidth: 810,
+    maxHeight: 480,
+    resizable: true,
+    alwaysOnTop: false,
+    transparent: true
+  };
+
+  if (windows.main && !windows.main.isDestroyed()) {
+    const mainWindowBounds = windows.main.getBounds();
+    controlWindowOptions.x = (mainWindowBounds.x - 1);
+    controlWindowOptions.y = mainWindowBounds.y;
+  }
+
+  createWindow('control', controlWindowOptions, path.join(viewsPath, 'ControL.html'));
   Menu.setApplicationMenu(null);
+  globalShortcut.register('Ctrl+O', () => windows.control?.webContents?.openDevTools());
 };
 
 const toggleMainWindowVisibility = () => {
@@ -236,6 +259,7 @@ const registerIpcHandlers = () => {
   });
 };
 
+
 const loadToolsList = () => {
   fs.readFile(filePath, 'utf8', (err, data) => {
     if (err) { console.error(err); return; }
@@ -249,6 +273,9 @@ const loadToolsList = () => {
 
         mainWindowWidth = metaWindowWidthTag ? parseInt(metaWindowWidthTag.$.value) : 550;
         mainWindowHeight = metaWindowHeightTag ? parseInt(metaWindowHeightTag.$.value) : 343;
+        
+        controlWindowWidth = metaWindowWidthTag ? parseInt(metaWindowWidthTag.$.value) : 550;
+        controlWindowHeight = metaWindowHeightTag ? parseInt(metaWindowHeightTag.$.value) : 343;
 
         if (animationStartTag) {
           const animationStatus = String(animationStartTag.$.value || '').trim().toLowerCase();
@@ -263,7 +290,6 @@ const loadToolsList = () => {
     });
   });
 };
-
 
 const createErrorDialog = () => {
   if (windows.error && !windows.error.isDestroyed()) {
@@ -280,7 +306,9 @@ const createErrorDialog = () => {
   }, path.join(viewsPath, 'Dialog.html'));
 };
 
-ipcMain.handle('ErrorDialog', () => createErrorDialog());
+ipcMain.handle('ErrorDialog', () => 
+  createErrorDialog()
+);
 
 app.whenReady().then(() => {
   loadToolsList();
@@ -289,11 +317,9 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+  app.quit();
 });
 
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) createTransparentWindow();
-});
-
-app.on('will-quit', () => globalShortcut.unregisterAll());
+app.on('will-quit', () => 
+  globalShortcut.unregisterAll()
+);

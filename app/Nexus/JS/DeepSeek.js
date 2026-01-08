@@ -1,9 +1,9 @@
 /**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.6
+ * @Version     1.0.7
  * @Since       2023-08-31
- * @LastUpdated 2025-08-01
- * @Description 负责 AI 聊天逻辑（DeepSeek / ChatGPT / 本地 Ollama）
+ * @LastUpdated 2026-01-07
+ * @Description 负责 AI 聊天逻辑（DeepSeek / ChatGPT / 本地 Ollama / 远程 Ollama）
  * @License     MIT
  */
 
@@ -18,31 +18,63 @@ var closeButton = document.getElementById("close-button");
 
 let isSending = false;
 let autoScroll = true;
-let lastScrollTop = 0;
-let scrollCheckTimer = null;
+let scrollEndTimer = null;
 
 var deepseekController;
 var ollamaController;
+var remoteOllamaController;
 
-terminalElement.addEventListener('scroll', () => {
-  if (scrollCheckTimer) return;
-  scrollCheckTimer = setTimeout(() => {
-    const delta = terminalElement.scrollTop - lastScrollTop;
-    lastScrollTop = terminalElement.scrollTop;
-    const isAtBottom = terminalElement.scrollHeight - terminalElement.scrollTop - terminalElement.clientHeight < 100;
-    if (delta < 0 || !isAtBottom) {
+if (terminalElement) {
+  terminalElement.addEventListener('scroll', () => {
+    clearTimeout(scrollEndTimer);
+    const isAtBottom = isElementAtBottom(terminalElement);
+    if (!isAtBottom) {
       autoScroll = false;
-    } else if (isAtBottom) {
+    } 
+
+    else {
       autoScroll = true;
     }
-    scrollCheckTimer = null;
-  }, 100);
-});
+    scrollEndTimer = setTimeout(() => {
+      autoScroll = isElementAtBottom(terminalElement);
+    }, 150);
+  }, { passive: true });
+}
+
+function isElementAtBottom(el) {
+  if (!el) return false;
+  const { scrollTop, scrollHeight, clientHeight } = el;
+  return Math.abs(scrollHeight - scrollTop - clientHeight) <= 1;
+}
+
+function scrollToBottomIfNeeded() {
+  if (!terminalElement || !autoScroll) return;
+  requestAnimationFrame(() => {
+    if (!isElementAtBottom(terminalElement)) {
+      terminalElement.scrollTop = terminalElement.scrollHeight;
+      requestAnimationFrame(() => {
+        terminalElement.scrollTop = terminalElement.scrollHeight;
+      });
+    }
+  });
+}
+
+
+function forceScrollToBottom() {
+  if (!terminalElement) return;
+  requestAnimationFrame(() => {
+    terminalElement.scrollTop = terminalElement.scrollHeight;
+    requestAnimationFrame(() => {
+      terminalElement.scrollTop = terminalElement.scrollHeight;
+    });
+  });
+}
 
 function resetSendState() {
   isSending = false;
   deepseekController = null;
   ollamaController = null;
+  remoteOllamaController = null;
   toggleCloseButtonIcon(false);
 }
 
@@ -92,7 +124,6 @@ function getPromptPrefix() {
     You are speaking with "发光的神" a 20-year-old cybersecurity expert, your developer, always providing professional technical support to the user.
   `.trim();
 }
-
 
 async function askDeepSeekStream(apiKey, messages, onData) {
   const url = 'https://api.deepseek.com/chat/completions';
@@ -164,9 +195,11 @@ async function requestDeepSeek(inputText, modelName) {
         if (!textElement) textElement = createBubble("", "ai", modelName);
         textElement.innerHTML = marked.parse(fullText);
         highlightCode(textElement);
-        if (autoScroll) terminalElement.scrollTop = terminalElement.scrollHeight;
+
+        scrollToBottomIfNeeded();
       }
       if (done) {
+        scrollToBottomIfNeeded();
         if (textElement && fullText.trim() !== "") resetSendState();
       }
     });
@@ -186,10 +219,16 @@ function requestChatGPT(inputText) {
   axios.post(url, data, { headers })
     .then(response => {
       const aiText = response?.data?.data || response?.data || "";
-      displayTextSlowly(aiText, "ai", "chatgpt", () => { resetSendState(); });
+      displayTextSlowly(aiText, "ai", "chatgpt", () => { 
+        scrollToBottomIfNeeded();
+        resetSendState(); 
+      });
     })
     .catch(() => {
-      displayTextSlowly("Error: Network issue", "ai", "chatgpt", () => { resetSendState(); });
+      displayTextSlowly("Error: Network issue", "ai", "chatgpt", () => { 
+        scrollToBottomIfNeeded();
+        resetSendState(); 
+      });
     });
 }
 
@@ -251,30 +290,102 @@ async function loadOllamaModels() {
   }
 }
 
-function ensureOnlineGroup() {
-  [...modelSelect.querySelectorAll('option[data-src="online"]')].forEach(o => o.remove());
-
-  const divider = document.createElement('option');
-  divider.textContent = '—— 在线模型 ——';
-  divider.disabled = true;
-  divider.dataset.src = 'online';
-
-  const deepseekOpt = document.createElement('option');
-  deepseekOpt.value = 'deepseek';
-  deepseekOpt.textContent = 'DeepSeek';
-  deepseekOpt.dataset.src = 'online';
-
-  const chatgptOpt = document.createElement('option');
-  chatgptOpt.value = 'chatgpt';
-  chatgptOpt.textContent = 'ChatGPT';
-  chatgptOpt.dataset.src = 'online';
-
-  modelSelect.insertBefore(chatgptOpt, modelSelect.firstChild);
-  modelSelect.insertBefore(deepseekOpt, modelSelect.firstChild);
-  modelSelect.insertBefore(divider, modelSelect.firstChild);
-
-  modelSelect.value = 'chatgpt';
+async function askRemoteOllamaStream(model, messages, onData) {
+  const url = 'https://ollama.com/api/chat';
+  const payload = {
+    model,
+    messages: [
+      { role: 'system', content: getPromptPrefix() },
+      ...messages
+    ],
+    stream: true
+  };
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': 'e48548f1e13d466a86b3a1d23b656002.nTWzW2Gs-CEslVyEhnKE-VI6'
+      },
+      body: JSON.stringify(payload),
+      signal: remoteOllamaController?.signal
+    });
+    if (!response.ok || !response.body) {
+      showToast('远程Ollama请求失败，请检查网络或Authorization配置');
+      onData?.(null, true); 
+      return;
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split(/\r?\n/);
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const obj = JSON.parse(line);
+          const token = obj?.message?.content || '';
+          if (token) onData?.(token, false);
+          if (obj?.done) { 
+            onData?.(null, true); 
+            return; 
+          }
+        } catch (e) {}
+      }
+    }
+    onData?.(null, true);
+  } catch (e) {
+    console.error('远程Ollama请求错误:', e);
+    onData?.(null, true);
+  }
 }
+
+async function requestRemoteOllama(inputText, modelNameRaw) {
+  const modelName = (modelNameRaw || '').replace(/^ollama-remote:/, '');
+  if (!modelName) { 
+    showToast('未选择远程Ollama模型'); 
+    return; 
+  }
+  
+  remoteOllamaController = new AbortController();
+  isSending = true; 
+  toggleCloseButtonIcon(true);
+  
+  let fullText = ""; 
+  let textElement = null;
+  
+  try {
+    await askRemoteOllamaStream(
+      modelName, 
+      [{ role: 'user', content: inputText }],
+      (chunk, done) => {
+        if (chunk) {
+          fullText += chunk;
+          if (!textElement) {
+            textElement = createBubble("", "ai", `${modelName}`);
+          }
+          textElement.innerHTML = marked.parse(fullText);
+          highlightCode(textElement);
+          scrollToBottomIfNeeded();
+        }
+        if (done) {
+          scrollToBottomIfNeeded();
+          if (textElement && fullText.trim() !== "") {
+            resetSendState();
+          }
+        }
+      }
+    );
+  } catch (e) { 
+    console.error('requestRemoteOllama错误:', e);
+    resetSendState(); 
+  }
+}
+
 async function askOllamaStream(model, messages, onData) {
   const url = getOllamaBaseURL() + '/api/chat';
   const payload = {
@@ -334,38 +445,76 @@ async function requestOllama(inputText, modelNameRaw) {
         if (!textElement) textElement = createBubble("", "ai", modelName);
         textElement.innerHTML = marked.parse(fullText);
         highlightCode(textElement);
-        if (autoScroll) terminalElement.scrollTop = terminalElement.scrollHeight;
+        scrollToBottomIfNeeded();
       }
       if (done) {
+        scrollToBottomIfNeeded();
         if (textElement && fullText.trim() !== "") resetSendState();
       }
     });
   } catch (e) { resetSendState(); }
 }
 
+function ensureOnlineGroup() {
+  [...modelSelect.querySelectorAll('option[data-src="online"]')].forEach(o => o.remove());
+
+  const divider = document.createElement('option');
+  divider.textContent = '—— 在线模型 ——';
+  divider.disabled = true;
+  divider.dataset.src = 'online';
+
+  const deepseekOpt = document.createElement('option');
+  deepseekOpt.value = 'deepseek';
+  deepseekOpt.textContent = 'DeepSeek';
+  deepseekOpt.dataset.src = 'online';
+
+  const chatgptOpt = document.createElement('option');
+  chatgptOpt.value = 'chatgpt';
+  chatgptOpt.textContent = 'ChatGPT';
+  chatgptOpt.dataset.src = 'online';
+
+  const gptOssOpt = document.createElement('option');
+  gptOssOpt.value = 'gpt-oss:120b';
+  gptOssOpt.textContent = 'GPT-OSS:120b';
+  gptOssOpt.dataset.src = 'online';
+
+  modelSelect.insertBefore(gptOssOpt, modelSelect.firstChild);
+  modelSelect.insertBefore(chatgptOpt, modelSelect.firstChild);
+  modelSelect.insertBefore(deepseekOpt, modelSelect.firstChild);
+  modelSelect.insertBefore(divider, modelSelect.firstChild);
+
+  modelSelect.value = 'deepseek';
+}
 
 inputElement.addEventListener("keydown", (event) => {
   if (event.key !== "Enter") return;
   event.preventDefault();
 
   const selectedModel = modelSelect.value;
+
   if (selectedModel === "deepseek") {
     const apiKey = localStorage.getItem('DeepseekApiKey');
     if (!apiKey) { showToast("请填写 DeepSeek API Key"); return; }
   }
-  if (isSending) { showToast("✋ 请等待 AI 回答完再发送哦~"); return; }
+
+  if (isSending) { return; }
+  
   const inputText = inputElement.value.trim();
   if (inputText === "") return;
 
+  autoScroll = true; 
   inputElement.value = "";
   displayTextSlowly(inputText, "user");
+  forceScrollToBottom();
 
   if (selectedModel === "deepseek") {
     requestDeepSeek(inputText, selectedModel);
   } else if (selectedModel === "chatgpt") {
     requestChatGPT(inputText);
-  } else if (selectedModel && selectedModel.startsWith('ollama:')) {
+  } else if (selectedModel.startsWith('ollama:')) {
     requestOllama(inputText, selectedModel);
+  } else if (selectedModel.startsWith('gpt-oss:120b')) { 
+    requestRemoteOllama(inputText, selectedModel);
   } else {
     showToast('未选择可用模型');
   }
@@ -380,7 +529,11 @@ if (clearButton) {
     inputElement.value = "";
     if (deepseekController) deepseekController.abort();
     if (ollamaController) ollamaController.abort();
-    setTimeout(() => { autoScroll = true; }, 500);
+    if (remoteOllamaController) remoteOllamaController.abort();
+    setTimeout(() => { 
+      autoScroll = true; 
+      terminalElement.scrollTop = terminalElement.scrollHeight;
+    }, 500);
     resetSendState();
   });
 }
@@ -389,6 +542,7 @@ if (closeButton) {
   closeButton.addEventListener("click", () => {
     if (deepseekController) deepseekController.abort();
     if (ollamaController) ollamaController.abort();
+    if (remoteOllamaController) remoteOllamaController.abort();
     resetSendState();
   });
 }
@@ -403,7 +557,7 @@ function createBubble(text, sender, modelName) {
   const nameTag = document.createElement("span");
   nameTag.className = "message-name";
   if (sender === "user") {
-    avatar.src = "../Assets/Image/Avatar.jpg";
+    avatar.src = "../Assets/Image/Avatar.png";
     avatar.alt = "发光的神";
     nameTag.textContent = "发光的神";
     header.appendChild(nameTag); header.appendChild(avatar);
@@ -413,7 +567,6 @@ function createBubble(text, sender, modelName) {
 
     let showName = modelName || '';
     if (showName.startsWith('ollama:')) showName = showName.replace(/^ollama:/, '');
-    if (showName) showName = showName
 
     nameTag.textContent = "夜璃" + (showName ? ` · ${showName}` : '');
     header.appendChild(avatar); header.appendChild(nameTag);
@@ -424,6 +577,8 @@ function createBubble(text, sender, modelName) {
   if (text) textElement.innerHTML = marked.parse(text);
   bubble.appendChild(textElement);
   terminalElement.appendChild(bubble);
+  
+  void terminalElement.offsetHeight;
   return textElement;
 }
 
@@ -435,15 +590,24 @@ function displayTextSlowly(text, sender, modelName, onDone) {
       textElement.innerHTML = marked.parse(text.slice(0, index + 1));
       highlightCode(textElement);
       index++;
-      setTimeout(() => { terminalElement.scrollTop = terminalElement.scrollHeight; }, 0);
+      
+      if (sender === "user") {
+        forceScrollToBottom();
+      } else {
+        scrollToBottomIfNeeded();
+      }
     } else {
       clearInterval(intervalId);
       textElement.innerHTML = marked.parse(text);
       highlightCode(textElement);
-      setTimeout(() => { terminalElement.scrollTop = terminalElement.scrollHeight; }, 0);
+      if (sender === "user") {
+        forceScrollToBottom();
+      } else {
+        scrollToBottomIfNeeded();
+      }
       onDone?.();
     }
-  }, 30);
+  }, 10);
 }
 
 function highlightCode(bubble) {
@@ -457,14 +621,47 @@ function highlightCode(bubble) {
 function addCopyButton(codeBlock) {
   const copyButton = document.createElement("button");
   copyButton.className = "copy-button";
-  copyButton.textContent = "Copy";
-  codeBlock.parentNode.insertBefore(copyButton, codeBlock);
+  copyButton.textContent = "复制";
+
+  const preContainer = codeBlock.parentNode;
+  preContainer.style.position = "relative";
+  preContainer.style.paddingRight = "40px";
+
+  copyButton.style.cssText = `
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    background-color: #444;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    z-index: 1;
+    transition: background-color 0.2s;
+  `;
+
+  copyButton.addEventListener("mouseenter", () => {
+    copyButton.style.backgroundColor = "#666";
+  });
+  copyButton.addEventListener("mouseleave", () => {
+    copyButton.style.backgroundColor = "#444";
+  });
+
+  preContainer.insertBefore(copyButton, codeBlock);
   copyButton.addEventListener("click", () => {
-    navigator.clipboard.writeText(codeBlock.textContent);
+    navigator.clipboard.writeText(codeBlock.textContent)
+      .then(() => {
+        copyButton.textContent = "已复制";
+        setTimeout(() => {
+          copyButton.textContent = "复制";
+        }, 1500);
+      })
   });
 }
 
 (function init() {
-  ensureOnlineGroup();
-  loadOllamaModels();
+  ensureOnlineGroup()
+  loadOllamaModels()
 })();

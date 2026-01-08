@@ -1,8 +1,8 @@
 /**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.6
+ * @Version     1.0.7
  * @Since       2023-08-31
- * @LastUpdated 2025-08-01
+ * @LastUpdated 2026-01-07
  * @Description 负责 Frida 编辑器逻辑
  * @License     MIT
  */
@@ -232,7 +232,7 @@ async function askDeepSeekStream(apiKey, question, onData) {
         });
 
         if (!response.ok || !response.body) {
-            showMessage("❌ 请求失败，请检查配置");
+            showMessage("请求失败，请检查配置");
             return;
         }
 

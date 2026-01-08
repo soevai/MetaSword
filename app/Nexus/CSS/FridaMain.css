@@ -7,6 +7,10 @@
     -ms-user-select: none;
 }
 
+.fa {
+    font: 14px FontAwesome;
+}
+
 body {
     padding: 5px;
     overflow: hidden;
@@ -83,6 +87,7 @@ body {
     text-align: center;
     font-family: fantasy;
     margin-left: 10px;
+    box-shadow: 0px 0px 3px 0px rgb(0 0 0 / 70%);
     -webkit-app-region: no-drag;
 }
 
@@ -94,7 +99,16 @@ body {
     border-radius: 5px;
     transition: background-color 0.2s ease-in-out;
     float: left;
+    box-shadow: 0px 0px 3px 0px rgb(0 0 0 / 70%);
     -webkit-app-region: no-drag;
+}
+
+.fa-window-minimize {
+    font-size: 9px;
+}
+
+.maximize-btn {
+    font-size: 18px;
 }
 
 .Frida-IDE-search:hover {
@@ -132,13 +146,12 @@ body {
     border-radius: 5px;
     background-color: #2c3f4b;
     color: white;
-    font-size: 16px;
-    font-weight: bold;
     cursor: pointer;
     float: left;
     display: inline-block;
     margin-right: 5px;
     text-align: center;
+    box-shadow: 0px 0px 3px 0px rgb(0 0 0 / 70%);
     -webkit-app-region: no-drag;
 }
 
@@ -153,11 +166,10 @@ body {
 }
 
 .minimize-btn {
-    font-size: 18px;
+    font-size: 13px;
 }
 
-.close-btn {
-    font-size: 18px;
+#closeButton {
     color: #f56666;
 }
 
@@ -208,6 +220,7 @@ input[type="radio"]:checked::before {
     background-color: #2c3f4b;
     transition: .4s;
     border-radius: 34px;
+    box-shadow: 0px 0px 3px 0px rgb(0 0 0 / 70%);
     -webkit-app-region: no-drag;
 }
 
@@ -261,6 +274,7 @@ tbody tr:hover {
     border-radius: 5px;
     transition: background-color 0.2s ease-in-out;
     float: left;
+    box-shadow: 0px 0px 3px 0px rgb(0 0 0 / 70%);
     -webkit-app-region: no-drag;
 }
 
@@ -563,7 +577,6 @@ tbody tr:hover {
     color: #e53935;
 }
 
-/* Tabs */
 .Frida-IDE-tabs {
     display: flex;
     background: #fafafa;

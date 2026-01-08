@@ -47,11 +47,6 @@ pre[class*=language-]::-webkit-scrollbar-thumb:hover {
 }
 
 
-:not(pre)>code[class*=language-],
-pre[class*=language-] {
-    background: #272822
-}
-
 :not(pre)>code[class*=language-] {
     padding: .1em;
     border-radius: .3em;

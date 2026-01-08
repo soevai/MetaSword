@@ -3,10 +3,10 @@
 
 <!--
   @Author      发光的神 (VoxShadow)
-  @Version     1.0.6
+  @Version     1.0.7
   @Since       2023-08-31
-  @LastUpdated 2025-08-01
-  @Description 次元剑主窗口界面配置
+  @LastUpdated 2026-01-07
+  @Description 次元剑主窗口界面
   @License     MIT
 -->
 
@@ -14,13 +14,9 @@
     <meta charset="UTF-8" />
     <title>逆向工具箱 - 次元剑</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- 主样式 -->
     <link rel="stylesheet" href="../CSS/MetaMain.css" />
-    <!-- 图标库 -->
     <link rel="stylesheet" href="../Fonts/FontAwesome/css/font-awesome.min.css" />
-    <!-- PrismJS 高亮主题 -->
     <link rel="stylesheet" href="../JS/prismjs/themes/prism-okaidia.min.css" />
-    <!-- PrismJS 语言支持 -->
     <script src="../JS/prismjs/prism.min.js" defer></script>
     <script src="../JS/prismjs/components/prism-javascript.min.js" defer></script>
     <script src="../JS/prismjs/components/prism-python.min.js" defer></script>
@@ -41,17 +37,15 @@
     <script src="../JS/prismjs/components/prism-php.min.js" defer></script>
 </head>
 
-
 <body>
     <div id="MetaSword-view">
         <div class="MetaSword-header">
-
             <div class="MetaSword-right-title">Meta Sword</div>
             <i class="fa fa-eercast"></i>
             <p class="MetaSword-header-title">次元剑</p>
 
-            <div id="MetaSword-customCloseBut" class="fa fa-times"></div>
             <div id="MetaSword-customMinimizeBut" class="fa fa-window-minimize"></div>
+            <div id="MetaSword-customCloseBut" class="fa fa-times"></div>
 
             <div class="MetaSword-interactive-area">
                 <div class="MetaSword-menu-container">
@@ -552,7 +546,7 @@
                 <div id="MetaSword-terminal">
                     <p class="AI-welcome-message">Welcome to the AI terminal</p>
                     <select id="AI-model-select">
-                    
+
                     </select>
                 </div>
 
@@ -585,21 +579,30 @@
         <script>
             const image = document.getElementById('Author-avatar');
             const baseUrl = 'https://thirdqq.qlogo.cn/g?b=qq&nk=2872930558&s=100';
-            const fallbackUrl = '../Assets/Image/Avatar.jpg';
+            const fallbackUrl = '../Assets/Image/Avatar.png';
 
             const timestamp = Date.now();
             const onlineUrl = `${baseUrl}&t=${timestamp}`;
 
+            const IMAGE_LOAD_TIMEOUT = 3000;
+            let loadTimer = null;
+
             const testImage = new Image();
+            testImage.crossOrigin = 'anonymous';
             testImage.src = onlineUrl;
 
             testImage.onload = () => {
+                clearTimeout(loadTimer);
                 image.src = onlineUrl;
             };
 
-            testImage.onerror = () => {
+            const handleLoadError = () => {
+                clearTimeout(loadTimer);
                 image.src = fallbackUrl;
             };
+
+            testImage.onerror = handleLoadError;
+            loadTimer = setTimeout(handleLoadError, IMAGE_LOAD_TIMEOUT);
         </script>
 
         <script src="../JS/MainFunc.js"></script>

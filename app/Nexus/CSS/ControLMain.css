@@ -6,6 +6,10 @@
     font-family: 'Segoe UI', '华文细黑', sans-serif;
 }
 
+.fa {
+    font: 14px FontAwesome;
+}
+
 body {
     height: 100vh;
     display: flex;
@@ -21,35 +25,32 @@ body {
     position: relative;
     background: #181818;
     border-radius: 10px 10px 10px 10px;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 0px 3px 0px rgb(0 0 0 / 70%);
 }
 
 .button-panel {
     position: absolute;
     top: 0px;
-    right: 10px;
     width: 100%;
     display: flex;
     justify-content: flex-end;
-    background: transparent;
     -webkit-app-region: drag;
+    height: 35px;
+    z-index: 1;
 }
 
-.close-btn {
+#close-btn {
+position: absolute;
+    padding: 8px 13px;
+    top: 5px;
+    right: 5px;
     color: white;
-    border: none;
-    right: 23px;
-    width: 30px;
-    height: 30px;
-    font-size: 28px;
     transition: all 0.3s ease;
     z-index: 1;
-    background: transparent;
-    transform: scale(0.9);
     -webkit-app-region: no-drag;
 }
 
-.close-btn:hover {
+#close-btn:hover {
     color: red;
 }
 
@@ -82,7 +83,7 @@ body {
     border-radius: 10px;
     padding: 20px;
     min-width: 233px;
-    height: 250px;
+    height: 258px;
     overflow: hidden;
     transition: all 0.1s;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -121,13 +122,13 @@ label {
     padding: 6px 18px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.05s ease;
     margin: 5px 0;
-    font-weight: 600;
+    font-weight: bold;
+    transition: transform 0.2s ease;
 }
 
 .button:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
 }
 
 .button:active {
@@ -213,13 +214,9 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 #popup-ok:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
 }
 
-#popup-ok:active {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 247, 255, 0.3);
-}
 
 .light {
     background: #f0f0f0;
@@ -252,10 +249,10 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .stitle {
+    position: absolute;
     margin-top: -17px;
     z-index: 1;
-    position: absolute;
-    left: 25px;
+    left: 15px;
     font-family: auto;
     font-size: 33px;
     filter: drop-shadow(35px 0px 0px #f39c12);

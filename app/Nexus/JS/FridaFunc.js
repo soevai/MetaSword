@@ -1,14 +1,14 @@
 /**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.6
+ * @Version     1.0.7
  * @Since       2023-08-31
- * @LastUpdated 2025-08-01
+ * @LastUpdated 2026-01-07
  * @Description 负责 Frida IDE 核心逻辑
  * @License     MIT
  */
 
+const { ipcRenderer, shell } = require('electron');
 const { spawn, execFile, exec } = require("child_process");
-const { ipcRenderer } = require('electron');
 const path = require("path");
 const fs = require("fs");
 
@@ -236,8 +236,6 @@ windowHeader.addEventListener('mousedown', function (e) {
     document.addEventListener('mousemove', elementDrag);
     document.addEventListener('mouseup', closeDragElement);
 });
-
-
 
 var searchbutton = document.querySelector('.Frida-IDE-search');
 searchbutton.addEventListener('click', async function () {
@@ -659,7 +657,7 @@ document.addEventListener('keydown', function (e) {
         const currentTime = Date.now();
         if (currentTime - lastSaveTimestamp < 1000) return;
         lastSaveTimestamp = currentTime;
-
+        
         const filePath = ScriptPath || `${Fridapath}/Script/Demo.js`;
         const code = editor.getValue();
 
@@ -671,7 +669,7 @@ document.addEventListener('keydown', function (e) {
                     {
                         label: "打开位置",
                         onClick: () => {
-                            exec(`start "" "${path.dirname(filePath)}"`);
+                            shell.openExternal(path.dirname(filePath));
                         }
                     }
                 ]);

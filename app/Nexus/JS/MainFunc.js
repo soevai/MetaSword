@@ -1,8 +1,8 @@
 /**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.6
+ * @Version     1.0.7
  * @Since       2023-08-31
- * @LastUpdated 2025-08-01
+ * @LastUpdated 2026-01-07
  * @Description 负责次元剑核心逻辑
  * @License     MIT
  */
@@ -13,17 +13,21 @@ const path = require('path');
 const fs = require('fs');
 
 
-['MetaSword-customCloseBut', 'MetaSword-customMinimizeBut'].forEach((id, i) => {
+['MetaSword-customCloseBut', 'MetaSword-customMinimizeBut'].forEach((id) => {
     document.getElementById(id).addEventListener('click', () => {
-        ipcRenderer.send(i === 0 ? 'close-mainwindow' : 'minimize-mainwindow');
+        const channel = id === 'MetaSword-customCloseBut' 
+            ? 'close-mainwindow' 
+            : 'minimize-mainwindow';
+        ipcRenderer.send(channel);
     });
 });
 
+
 document.querySelector("#Author-blog-link")?.addEventListener('click', (e) => {
     e.preventDefault();
-    exec(`start "" "${e.currentTarget.getAttribute('href')}"`);
+    const href = e.currentTarget.getAttribute('href');
+    exec(`start "" "${href}"`);
 });
-
 
 var statusIndicator = document.querySelector('.MetaSword-status-indicator');
 var menuContainer = document.querySelector('.MetaSword-menu-container');
@@ -52,10 +56,10 @@ function resetTitle() {
 
 function MouseOverTitle(title) {
     const iconStyles = {
-        '主页': { top: '67px', title: '主页' },
-        '工具': { top: '105px', title: '工具' },
-        'DeepSeek': { top: '143px', title: 'DeepSeek' },
-        '关于': { top: '179px', title: '关于' }
+        '主页': { top: '57px', title: '主页' },
+        '工具': { top: '95px', title: '工具' },
+        'DeepSeek': { top: '133px', title: 'DeepSeek' },
+        '关于': { top: '169px', title: '关于' }
     };
 
     const { top, title: newTitle } = iconStyles[title] || {};
@@ -131,10 +135,10 @@ function extractData() {
     return fetch(ToolsListPath)
         .then(response => response.text())
         .then(data => {
-            var parser = new DOMParser();
-            var xmlDoc = parser.parseFromString(data, 'text/xml');
-            return xmlDoc.getElementsByTagName('category');
-        });
+        var parser = new DOMParser();
+        var xmlDoc = parser.parseFromString(data, 'text/xml');
+        return xmlDoc.getElementsByTagName('category');
+    });
 }
 
 (function () {
@@ -264,7 +268,7 @@ function showContextMenu(event, text) {
     inner.classList.add('context-menu-inner');
 
     const menuWidth = 180;
-    const menuHeight = 80;
+    const menuHeight = 70;
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
 
@@ -466,7 +470,7 @@ function runCommandAsAdmin(filePath, requiresUAC) {
     ClickAudio.play();
     const stats = fs.statSync(filePath);
     if (stats.isDirectory()) {
-        exec(`start "" "${filePath}"`, () => { });
+        exec(`start "" "${filePath}"`);
         return;
     }
     const ext = path.extname(filePath).toLowerCase();
@@ -523,7 +527,7 @@ logStyled(
 );
 
 logImageBlock([path.resolve(__dirname, '../Assets/Image/icon.ico')], 33, 'cover');
-logTitle('次元剑 MetaSword', '1.0.6');
+logTitle('次元剑 MetaSword', '1.0.7');
 
 logStyled(
     ['[像花一样对称，', 'color:#606060; font-weight:bold;'],
