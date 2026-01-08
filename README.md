@@ -14,7 +14,7 @@
   <img src="https://meta.natapp4.cc/usr/uploads/2024/12/2120434451.png" width="100%" alt="MetaSword Main Logo"/>
 </p>
 
-## ✨ 简介
+## 🔥 简介
 
 **次元剑（MetaSword）**，源于热爱，成于实战，
 只为破局，每一次更新，都是对规则的挑战，  
@@ -34,7 +34,7 @@
   <img src="https://pic1.imgdb.cn/item/6891ccaf58cb8da5c80665bd.webp" alt="Tool Categories" width="55%" />
 </p>
 
-### 🏴 逆向分析工具
+### 🏳️ 逆向分析工具
 
 - 提供一站式的反汇编、调试与分析体验
 - 支持主流工具协作：
@@ -52,7 +52,7 @@
   - `Tscan`
   - `ez`
 
-### 🎨 用户界面
+### 👥 用户界面
 
 - 极简轻量化 UI 设计
 - 初学者友好，高阶用户效率最大化
@@ -63,9 +63,9 @@
 
 ## 👁‍🗨 作者留言
 
-> **次元剑真正的力量，源于使用者的勇气与智慧。**  
-> 敢于挑战突破边界的人，才能唤醒它全部的潜力。
+> **次元剑的力量，是执剑人的勇气与智慧。**  
+> 江湖路远，愿你执剑，走向更高的地方。
 
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=rect&color=0:0a0a0a,100:1a1a2a&height=130&text=⚔️%20MetaSword&fontColor=aa88ff&fontAlignY=40&desc=次元剑%20-%20逆流而上&descSize=15&descAlignY=70" style="width: 100%;" />
+  <img src="https://capsule-render.vercel.app/api?type=rect&color=ffffff&height=130&text=⚔️%20MetaSword&fontColor=0a0a0a&fontAlignY=40&desc=次元剑%20-%20逆流而上&descSize=15&descAlignY=70" style="width: 100%;" />
 </p>
