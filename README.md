@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img src="https://meta.natapp4.cc/usr/uploads/2026/01/1627329843.png" width="100%" alt="MetaSword Main Logo"/>
+  <img src="https://www.52tt.pro/usr/uploads/2026/01/1627329843.png" width="100%" alt="MetaSword Main Logo"/>
 </p>
 
 ## 🔥 简介
