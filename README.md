@@ -24,9 +24,9 @@
 
 ## ⚙️ 功能展示
 
-### 🧰 工具分类界面
+### 🧰 工具箱模块
 <p align="center">
-  <img src="https://pic1.imgdb.cn/item/6891ccaf58cb8da5c80665bd.webp" alt="Tool Categories" width="55%" />
+  <img src="https://pic1.imgdb.cn/item/6891ccaf58cb8da5c80665bd.webp" alt="MetaSword" width="53%" />
 </p>
 
 ### 🏳️ 逆向分析工具
