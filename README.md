@@ -33,7 +33,7 @@
   <img src="https://pic1.imgdb.cn/item/69cdd7870d45b9ceac41894f.png" alt="MetaSword" width="55%" />
 </p>
 
-### 工具分类
+### 🔰 工具分类
 <p align="center">
   <img src="https://pic1.imgdb.cn/item/69ccf5ed0d45b9ceac3e3a05.webp" alt="MetaSword" width="55%" />
 </p>
