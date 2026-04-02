@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img src="https://www.52tt.pro/usr/uploads/2026/01/1627329843.png" width="100%" alt="MetaSword Main Logo"/>
+  <img src="https://www.52tt.pro/usr/uploads/2026/01/1627329843.png" width="100%" alt="MetaSword Logo"/>
 </p>
 
 ## 🔥 简介
@@ -23,9 +23,14 @@
 
 ## ⚙️ 功能展示
 
-### 🧰 工具箱模块
+### 🧰 工具箱分类
 <p align="center">
-  <img src="https://pic1.imgdb.cn/item/6891ccaf58cb8da5c80665bd.webp" alt="MetaSword" width="55%" />
+  <img src="https://pic1.imgdb.cn/item/69ccf5ed0d45b9ceac3e3a05.webp" alt="MetaSword" width="55%" />
+</p>
+
+### 🍭 主题更换
+<p align="center">
+  <img src="https://pic1.imgdb.cn/item/69cdd7870d45b9ceac41894f.png" alt="MetaSword" width="55%" />
 </p>
 
 ### 🏳️ 逆向分析工具
