@@ -21,16 +21,21 @@
 
 > **手握次元剑，踏破九重天。**
 
-## ⚙️ 功能展示
+## 📦 功能展示
 
-### 🧰 工具箱分类
+### 🏳️‍🌈 次元・起源
 <p align="center">
-  <img src="https://pic1.imgdb.cn/item/69ccf5ed0d45b9ceac3e3a05.webp" alt="MetaSword" width="55%" />
+  <img src="https://www.52tt.pro/usr/uploads/2025/08/2006586841.png" alt="MetaSword" width="55%" />
 </p>
 
-### 🍭 主题更换
+### 🍭 次元・紫雅・灰
 <p align="center">
   <img src="https://pic1.imgdb.cn/item/69cdd7870d45b9ceac41894f.png" alt="MetaSword" width="55%" />
+</p>
+
+### 工具分类
+<p align="center">
+  <img src="https://pic1.imgdb.cn/item/69ccf5ed0d45b9ceac3e3a05.webp" alt="MetaSword" width="55%" />
 </p>
 
 ### 🏳️ 逆向分析工具
