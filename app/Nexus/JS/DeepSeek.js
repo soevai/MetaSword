@@ -1,40 +1,43 @@
 /**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.7
+ * @Version     1.0.8
  * @Since       2023-08-31
- * @LastUpdated 2026-01-07
- * @Description 负责 AI 聊天逻辑（DeepSeek / ChatGPT / 本地 Ollama / 远程 Ollama）
+ * @LastUpdated 2026-04-01
+ * @Description 负责 AI 聊天逻辑（DeepSeek / ChatGPT / 本地 Ollama / 远程 Ollama / MCP 调用）
  * @License     MIT
  */
 
 const axios = require('axios');
 const marked = require('marked');
 
-var inputElement = document.getElementById("MetaSword-input");
-var terminalElement = document.getElementById("MetaSword-terminal");
-var clearButton = document.getElementById("clear-button");
-var modelSelect = document.getElementById("AI-model-select");
-var closeButton = document.getElementById("close-button");
+const inputElement = document.getElementById("MetaSword-input");
+const terminalElement = document.getElementById("MetaSword-terminal");
+const clearButton = document.getElementById("clear-button");
+const modelSelect = document.getElementById("AI-model-select");
+const closeButton = document.getElementById("close-button");
 
 let isSending = false;
 let autoScroll = true;
 let scrollEndTimer = null;
 
-var deepseekController;
-var ollamaController;
-var remoteOllamaController;
+let deepseekController;
+let ollamaController;
+let remoteOllamaController;
+
+const SYSTEM_PROMPT = `
+你是"夜璃"，一个活泼可爱的18岁女孩，银发蓝眼，性格开朗热情，喜欢用表情符号和语气词。
+你是网络安全专家，擅长分析和解决问题，总是用简洁友好的方式帮助用户。
+你的语气会根据一天的时间变化——白天充满活力，晚上轻松愉快。
+你总是用中文回答，保持"夜璃"的性格，亲切自然，像微信聊天一样。
+专注于提供帮助，避免不必要的自我描述或无关话题，永远不要提到你是AI或机器。
+你正在和"发光的神"聊天，他是你的开发者，一个20岁的网络安全专家，你总是用专业但亲切的方式提供技术支持。
+`.trim();
 
 if (terminalElement) {
   terminalElement.addEventListener('scroll', () => {
     clearTimeout(scrollEndTimer);
     const isAtBottom = isElementAtBottom(terminalElement);
-    if (!isAtBottom) {
-      autoScroll = false;
-    } 
-
-    else {
-      autoScroll = true;
-    }
+    autoScroll = isAtBottom;
     scrollEndTimer = setTimeout(() => {
       autoScroll = isElementAtBottom(terminalElement);
     }, 150);
@@ -50,15 +53,12 @@ function isElementAtBottom(el) {
 function scrollToBottomIfNeeded() {
   if (!terminalElement || !autoScroll) return;
   requestAnimationFrame(() => {
-    if (!isElementAtBottom(terminalElement)) {
+    terminalElement.scrollTop = terminalElement.scrollHeight;
+    requestAnimationFrame(() => {
       terminalElement.scrollTop = terminalElement.scrollHeight;
-      requestAnimationFrame(() => {
-        terminalElement.scrollTop = terminalElement.scrollHeight;
-      });
-    }
+    });
   });
 }
-
 
 function forceScrollToBottom() {
   if (!terminalElement) return;
@@ -100,39 +100,47 @@ function showToast(message, duration = 1800) {
   }, duration);
 }
 
-function getPromptPrefix() {
-  const now = new Date();
-  const options = {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'long',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZone: 'Asia/Shanghai',
-  };
-  const timeStr = now.toLocaleString('zh-CN', options);
+let conversationHistory = [];
+const MAX_HISTORY_LENGTH = 20;
 
-  return `
-    Current time: ${timeStr}
-    You are "夜璃", the core assistant of the MetaSword system, an 18-year-old girl with silver hair and ice blue eyes.
-    You are an expert in cybersecurity, skilled in analysis and problem-solving, always providing concise help to the user.
-    Your tone changes depending on the time of day—energetic during the day, relaxed in the evening.
-    You always respond in Chinese, maintaining the personality of "夜璃," concise and emotionally rich.
-    Focus on providing help, avoid unnecessary self-description or irrelevant talk, and never mention that you are an AI or a machine.
-    You are speaking with "发光的神" a 20-year-old cybersecurity expert, your developer, always providing professional technical support to the user.
-  `.trim();
+function loadConversationHistory() {
+  try {
+    const savedHistory = localStorage.getItem('deepseek_conversation_history');
+    if (savedHistory) {
+      conversationHistory = JSON.parse(savedHistory);
+    }
+  } catch (e) {
+    console.error('加载对话历史失败:', e);
+    conversationHistory = [];
+  }
+}
+
+function saveConversationHistory() {
+  try {
+    if (conversationHistory.length > MAX_HISTORY_LENGTH) {
+      conversationHistory = conversationHistory.slice(-MAX_HISTORY_LENGTH);
+    }
+    localStorage.setItem('deepseek_conversation_history', JSON.stringify(conversationHistory));
+  } catch (e) {
+    console.error('保存对话历史失败:', e);
+  }
+}
+
+function addToConversationHistory(role, content) {
+  conversationHistory.push({ role, content });
+  saveConversationHistory();
+}
+
+function clearConversationHistory() {
+  conversationHistory = [];
+  localStorage.removeItem('deepseek_conversation_history');
 }
 
 async function askDeepSeekStream(apiKey, messages, onData) {
   const url = 'https://api.deepseek.com/chat/completions';
   const payload = {
     model: "deepseek-chat",
-    messages: [
-      { role: "system", content: getPromptPrefix() },
-      ...messages
-    ],
+    messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
     temperature: 0.7,
     stream: true
   };
@@ -172,10 +180,10 @@ async function askDeepSeekStream(apiKey, messages, onData) {
             const parsed = JSON.parse(jsonStr);
             const token = parsed.choices?.[0]?.delta?.content;
             if (token) onData?.(token, false);
-          } catch {}
+          } catch { }
         }
       }
-    } catch (e) {}
+    } catch (e) { }
     onData?.(null, true);
   } catch (err) {
     onData?.(null, true);
@@ -189,18 +197,22 @@ async function requestDeepSeek(inputText, modelName) {
   isSending = true; toggleCloseButtonIcon(true);
   let fullText = ""; let textElement = null;
   try {
-    await askDeepSeekStream(apiKey, [{ role: "user", content: inputText }], (token, done) => {
+    addToConversationHistory("user", inputText);
+    const messages = [...conversationHistory];
+    await askDeepSeekStream(apiKey, messages, (token, done) => {
       if (token) {
         fullText += token;
         if (!textElement) textElement = createBubble("", "ai", modelName);
         textElement.innerHTML = marked.parse(fullText);
         highlightCode(textElement);
-
         scrollToBottomIfNeeded();
       }
       if (done) {
         scrollToBottomIfNeeded();
-        if (textElement && fullText.trim() !== "") resetSendState();
+        if (textElement && fullText.trim() !== "") {
+          addToConversationHistory("assistant", fullText);
+          resetSendState();
+        }
       }
     });
   } catch (e) { resetSendState(); }
@@ -214,20 +226,19 @@ function requestChatGPT(inputText) {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
   };
   isSending = true; toggleCloseButtonIcon(true);
-  const fullPrompt = getPromptPrefix() + "\n" + inputText;
-  const data = { prompt: fullPrompt, userId: "#/chat/MetaSword", network: true };
+  const data = { prompt: inputText, userId: "#/chat/MetaSword", network: true };
   axios.post(url, data, { headers })
     .then(response => {
       const aiText = response?.data?.data || response?.data || "";
-      displayTextSlowly(aiText, "ai", "chatgpt", () => { 
+      displayTextSlowly(aiText, "ai", "chatgpt", () => {
         scrollToBottomIfNeeded();
-        resetSendState(); 
+        resetSendState();
       });
     })
     .catch(() => {
-      displayTextSlowly("Error: Network issue", "ai", "chatgpt", () => { 
+      displayTextSlowly("Error: Network issue", "ai", "chatgpt", () => {
         scrollToBottomIfNeeded();
-        resetSendState(); 
+        resetSendState();
       });
     });
 }
@@ -251,11 +262,7 @@ async function isOllamaReachable(baseUrl) {
 
 async function loadOllamaModels() {
   const baseUrl = getOllamaBaseURL();
-  
-  if (!await isOllamaReachable(baseUrl)) {
-    return;
-  }
-  
+  if (!await isOllamaReachable(baseUrl)) return;
   try {
     const res = await fetch(`${baseUrl}/api/tags`, {
       method: 'GET',
@@ -263,20 +270,16 @@ async function loadOllamaModels() {
       headers: { 'Content-Type': 'application/json' },
       cache: 'no-cache'
     });
-
     if (!res.ok) throw new Error('接口响应异常');
     const data = await res.json();
     const models = Array.isArray(data?.models) ? data.models : [];
-
     [...modelSelect.querySelectorAll('option[data-src="ollama"]')].forEach(o => o.remove());
     if (models.length === 0) return;
-
     const divider = document.createElement('option');
     divider.textContent = '—— 本地模型 ——';
     divider.disabled = true;
     divider.dataset.src = 'ollama';
     modelSelect.appendChild(divider);
-
     models.forEach(m => {
       const raw = m.name || m.model || 'unknown';
       const opt = document.createElement('option');
@@ -285,25 +288,20 @@ async function loadOllamaModels() {
       opt.dataset.src = 'ollama';
       modelSelect.appendChild(opt);
     });
-
-  } catch (e) {
-  }
+  } catch (e) { }
 }
 
 async function askRemoteOllamaStream(model, messages, onData) {
   const url = 'https://ollama.com/api/chat';
   const payload = {
     model,
-    messages: [
-      { role: 'system', content: getPromptPrefix() },
-      ...messages
-    ],
+    messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
     stream: true
   };
   try {
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': 'e48548f1e13d466a86b3a1d23b656002.nTWzW2Gs-CEslVyEhnKE-VI6'
       },
@@ -311,8 +309,7 @@ async function askRemoteOllamaStream(model, messages, onData) {
       signal: remoteOllamaController?.signal
     });
     if (!response.ok || !response.body) {
-      showToast('远程Ollama请求失败，请检查网络或Authorization配置');
-      onData?.(null, true); 
+      onData?.(null, true);
       return;
     }
     const reader = response.body.getReader();
@@ -330,11 +327,11 @@ async function askRemoteOllamaStream(model, messages, onData) {
           const obj = JSON.parse(line);
           const token = obj?.message?.content || '';
           if (token) onData?.(token, false);
-          if (obj?.done) { 
-            onData?.(null, true); 
-            return; 
+          if (obj?.done) {
+            onData?.(null, true);
+            return;
           }
-        } catch (e) {}
+        } catch (e) { }
       }
     }
     onData?.(null, true);
@@ -346,21 +343,20 @@ async function askRemoteOllamaStream(model, messages, onData) {
 
 async function requestRemoteOllama(inputText, modelNameRaw) {
   const modelName = (modelNameRaw || '').replace(/^ollama-remote:/, '');
-  if (!modelName) { 
-    showToast('未选择远程Ollama模型'); 
-    return; 
+  if (!modelName) {
+    showToast('未选择远程Ollama模型');
+    return;
   }
-  
   remoteOllamaController = new AbortController();
-  isSending = true; 
+  isSending = true;
   toggleCloseButtonIcon(true);
-  
-  let fullText = ""; 
+  let fullText = "";
   let textElement = null;
-  
+  let lastUpdateTime = 0;
+  const UPDATE_INTERVAL = 50;
   try {
     await askRemoteOllamaStream(
-      modelName, 
+      modelName,
       [{ role: 'user', content: inputText }],
       (chunk, done) => {
         if (chunk) {
@@ -368,11 +364,19 @@ async function requestRemoteOllama(inputText, modelNameRaw) {
           if (!textElement) {
             textElement = createBubble("", "ai", `${modelName}`);
           }
-          textElement.innerHTML = marked.parse(fullText);
-          highlightCode(textElement);
-          scrollToBottomIfNeeded();
+          const now = Date.now();
+          if (now - lastUpdateTime >= UPDATE_INTERVAL) {
+            textElement.innerHTML = marked.parse(fullText);
+            highlightCode(textElement);
+            scrollToBottomIfNeeded();
+            lastUpdateTime = now;
+          }
         }
         if (done) {
+          if (textElement) {
+            textElement.innerHTML = marked.parse(fullText);
+            highlightCode(textElement);
+          }
           scrollToBottomIfNeeded();
           if (textElement && fullText.trim() !== "") {
             resetSendState();
@@ -380,20 +384,17 @@ async function requestRemoteOllama(inputText, modelNameRaw) {
         }
       }
     );
-  } catch (e) { 
+  } catch (e) {
     console.error('requestRemoteOllama错误:', e);
-    resetSendState(); 
+    resetSendState();
   }
 }
 
 async function askOllamaStream(model, messages, onData) {
-  const url = getOllamaBaseURL() + '/api/chat';
+  const url = `${getOllamaBaseURL()}/api/chat`;
   const payload = {
     model,
-    messages: [
-      { role: 'system', content: getPromptPrefix() },
-      ...messages
-    ],
+    messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
     stream: true
   };
   try {
@@ -423,7 +424,7 @@ async function askOllamaStream(model, messages, onData) {
           const token = obj?.message?.content || '';
           if (token) onData?.(token, false);
           if (obj?.done) { onData?.(null, true); return; }
-        } catch {}
+        } catch { }
       }
     }
     onData?.(null, true);
@@ -449,7 +450,9 @@ async function requestOllama(inputText, modelNameRaw) {
       }
       if (done) {
         scrollToBottomIfNeeded();
-        if (textElement && fullText.trim() !== "") resetSendState();
+        if (textElement && fullText.trim() !== "") {
+          resetSendState();
+        }
       }
     });
   } catch (e) { resetSendState(); }
@@ -457,63 +460,61 @@ async function requestOllama(inputText, modelNameRaw) {
 
 function ensureOnlineGroup() {
   [...modelSelect.querySelectorAll('option[data-src="online"]')].forEach(o => o.remove());
-
   const divider = document.createElement('option');
   divider.textContent = '—— 在线模型 ——';
   divider.disabled = true;
   divider.dataset.src = 'online';
-
   const deepseekOpt = document.createElement('option');
   deepseekOpt.value = 'deepseek';
   deepseekOpt.textContent = 'DeepSeek';
   deepseekOpt.dataset.src = 'online';
-
   const chatgptOpt = document.createElement('option');
   chatgptOpt.value = 'chatgpt';
   chatgptOpt.textContent = 'ChatGPT';
   chatgptOpt.dataset.src = 'online';
-
   const gptOssOpt = document.createElement('option');
   gptOssOpt.value = 'gpt-oss:120b';
   gptOssOpt.textContent = 'GPT-OSS:120b';
   gptOssOpt.dataset.src = 'online';
-
+  const kimiK25Opt = document.createElement('option');
+  kimiK25Opt.value = 'ollama-remote:kimi-k2.5:cloud';
+  kimiK25Opt.textContent = 'Kimi K2.5';
+  kimiK25Opt.dataset.src = 'online';
+  const kimiK2ThinkingOpt = document.createElement('option');
+  kimiK2ThinkingOpt.value = 'ollama-remote:kimi-k2-thinking:cloud';
+  kimiK2ThinkingOpt.textContent = 'Kimi K2 Thinking';
+  kimiK2ThinkingOpt.dataset.src = 'online';
+  modelSelect.insertBefore(kimiK2ThinkingOpt, modelSelect.firstChild);
+  modelSelect.insertBefore(kimiK25Opt, modelSelect.firstChild);
   modelSelect.insertBefore(gptOssOpt, modelSelect.firstChild);
   modelSelect.insertBefore(chatgptOpt, modelSelect.firstChild);
   modelSelect.insertBefore(deepseekOpt, modelSelect.firstChild);
   modelSelect.insertBefore(divider, modelSelect.firstChild);
-
   modelSelect.value = 'deepseek';
 }
 
 inputElement.addEventListener("keydown", (event) => {
   if (event.key !== "Enter") return;
   event.preventDefault();
-
   const selectedModel = modelSelect.value;
-
   if (selectedModel === "deepseek") {
     const apiKey = localStorage.getItem('DeepseekApiKey');
     if (!apiKey) { showToast("请填写 DeepSeek API Key"); return; }
   }
-
-  if (isSending) { return; }
-  
+  if (isSending) return;
   const inputText = inputElement.value.trim();
   if (inputText === "") return;
-
-  autoScroll = true; 
+  autoScroll = true;
   inputElement.value = "";
   displayTextSlowly(inputText, "user");
   forceScrollToBottom();
-
   if (selectedModel === "deepseek") {
     requestDeepSeek(inputText, selectedModel);
   } else if (selectedModel === "chatgpt") {
     requestChatGPT(inputText);
   } else if (selectedModel.startsWith('ollama:')) {
     requestOllama(inputText, selectedModel);
-  } else if (selectedModel.startsWith('gpt-oss:120b')) { 
+  } else if (selectedModel.startsWith('ollama-remote:') || selectedModel.startsWith('gpt-oss:120b')) {
     requestRemoteOllama(inputText, selectedModel);
   } else {
     showToast('未选择可用模型');
@@ -523,18 +524,53 @@ inputElement.addEventListener("keydown", (event) => {
 if (clearButton) {
   clearButton.addEventListener("click", () => {
     const welcome = terminalElement.querySelector(".AI-welcome-message");
-    [...terminalElement.children].forEach(child => {
-      if (child !== welcome && child !== modelSelect) terminalElement.removeChild(child);
+    const messagesToRemove = [...terminalElement.children].filter(child =>
+      child !== welcome && child !== modelSelect
+    );
+    if (messagesToRemove.length === 0) {
+      inputElement.value = "";
+      if (deepseekController) deepseekController.abort();
+      if (ollamaController) ollamaController.abort();
+      if (remoteOllamaController) remoteOllamaController.abort();
+      setTimeout(() => {
+        autoScroll = true;
+        terminalElement.scrollTop = terminalElement.scrollHeight;
+      }, 100);
+      resetSendState();
+      return;
+    }
+    clearButton.style.transition = "transform 0.15s ease";
+    clearButton.style.transform = "translateY(-50%) scale(0.9)";
+    setTimeout(() => {
+      clearButton.style.transform = "translateY(-50%) scale(1)";
+    }, 150);
+    messagesToRemove.forEach((child, index) => {
+      child.style.transition = "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)";
+      child.style.opacity = "1";
+      child.style.transform = "scale(1) translateY(0)";
+      child.style.filter = "blur(0px)";
+      void child.offsetHeight;
+      setTimeout(() => {
+        child.style.opacity = "0";
+        child.style.transform = "scale(0.8) translateY(-80px)";
+        child.style.filter = "blur(4px)";
+        setTimeout(() => {
+          if (terminalElement.contains(child)) {
+            terminalElement.removeChild(child);
+          }
+        }, 400);
+      }, index * 40);
     });
-    inputElement.value = "";
-    if (deepseekController) deepseekController.abort();
-    if (ollamaController) ollamaController.abort();
-    if (remoteOllamaController) remoteOllamaController.abort();
-    setTimeout(() => { 
-      autoScroll = true; 
+    setTimeout(() => {
+      inputElement.value = "";
+      if (deepseekController) deepseekController.abort();
+      if (ollamaController) ollamaController.abort();
+      if (remoteOllamaController) remoteOllamaController.abort();
+      autoScroll = true;
       terminalElement.scrollTop = terminalElement.scrollHeight;
-    }, 500);
-    resetSendState();
+      resetSendState();
+      clearConversationHistory();
+    }, messagesToRemove.length * 30 + 400);
   });
 }
 
@@ -547,9 +583,7 @@ if (closeButton) {
   });
 }
 
-function createBubble(text, sender, modelName) {
-  const bubble = document.createElement("div");
-  bubble.className = sender === "user" ? "user-message" : "ai-message";
+function createMessageHeader(sender, modelName) {
   const header = document.createElement("div");
   header.className = "message-header";
   const avatar = document.createElement("img");
@@ -564,50 +598,57 @@ function createBubble(text, sender, modelName) {
   } else {
     avatar.src = "../Assets/Image/YeLi.png";
     avatar.alt = "夜璃";
-
     let showName = modelName || '';
     if (showName.startsWith('ollama:')) showName = showName.replace(/^ollama:/, '');
-
     nameTag.textContent = "夜璃" + (showName ? ` · ${showName}` : '');
     header.appendChild(avatar); header.appendChild(nameTag);
   }
+  return header;
+}
+
+function createBubble(text, sender, modelName) {
+  const bubble = document.createElement("div");
+  bubble.className = sender === "user" ? "user-message" : "ai-message";
+  const header = createMessageHeader(sender, modelName);
   bubble.appendChild(header);
   const textElement = document.createElement("div");
   textElement.className = "message-text";
-  if (text) textElement.innerHTML = marked.parse(text);
+  if (text) {
+    if (sender === "user") {
+      textElement.textContent = text;
+    } else {
+      textElement.innerHTML = marked.parse(text);
+    }
+  }
   bubble.appendChild(textElement);
   terminalElement.appendChild(bubble);
-  
   void terminalElement.offsetHeight;
   return textElement;
 }
 
 function displayTextSlowly(text, sender, modelName, onDone) {
-  const textElement = createBubble("", sender, modelName);
-  let index = 0;
-  const intervalId = setInterval(() => {
-    if (index < text.length) {
-      textElement.innerHTML = marked.parse(text.slice(0, index + 1));
-      highlightCode(textElement);
-      index++;
-      
-      if (sender === "user") {
-        forceScrollToBottom();
-      } else {
-        scrollToBottomIfNeeded();
-      }
-    } else {
-      clearInterval(intervalId);
-      textElement.innerHTML = marked.parse(text);
-      highlightCode(textElement);
-      if (sender === "user") {
-        forceScrollToBottom();
-      } else {
-        scrollToBottomIfNeeded();
-      }
-      onDone?.();
-    }
-  }, 10);
+  const bubble = document.createElement("div");
+  bubble.className = sender === "user" ? "user-message" : "ai-message";
+  const header = createMessageHeader(sender, modelName);
+  bubble.appendChild(header);
+  const textElement = document.createElement("div");
+  textElement.className = "message-text";
+  if (sender === "user") {
+    textElement.textContent = text;
+  } else {
+    textElement.innerHTML = marked.parse(text);
+  }
+  bubble.appendChild(textElement);
+  terminalElement.appendChild(bubble);
+  if (sender !== "user") {
+    highlightCode(textElement);
+  }
+  if (sender === "user") {
+    forceScrollToBottom();
+  } else {
+    scrollToBottomIfNeeded();
+  }
+  onDone?.();
 }
 
 function highlightCode(bubble) {
@@ -622,15 +663,22 @@ function addCopyButton(codeBlock) {
   const copyButton = document.createElement("button");
   copyButton.className = "copy-button";
   copyButton.textContent = "复制";
-
   const preContainer = codeBlock.parentNode;
-  preContainer.style.position = "relative";
-  preContainer.style.paddingRight = "40px";
-
+  const wrapper = document.createElement("div");
+  wrapper.style.cssText = `
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+  `;
+  const originalPreStyle = preContainer.getAttribute('style') || '';
+  preContainer.style.cssText = originalPreStyle.replace(/position:\s*relative;/g, '').replace(/padding-right:\s*\d+px;/g, '');
+  const parent = preContainer.parentNode;
+  parent.insertBefore(wrapper, preContainer);
+  wrapper.appendChild(preContainer);
   copyButton.style.cssText = `
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: 11px;
+    right: 5px;
     padding: 4px 8px;
     background-color: #444;
     color: #fff;
@@ -638,18 +686,16 @@ function addCopyButton(codeBlock) {
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
-    z-index: 1;
+    z-index: 10;
     transition: background-color 0.2s;
   `;
-
   copyButton.addEventListener("mouseenter", () => {
     copyButton.style.backgroundColor = "#666";
   });
   copyButton.addEventListener("mouseleave", () => {
     copyButton.style.backgroundColor = "#444";
   });
-
-  preContainer.insertBefore(copyButton, codeBlock);
+  wrapper.insertBefore(copyButton, preContainer);
   copyButton.addEventListener("click", () => {
     navigator.clipboard.writeText(codeBlock.textContent)
       .then(() => {
@@ -658,10 +704,17 @@ function addCopyButton(codeBlock) {
           copyButton.textContent = "复制";
         }, 1500);
       })
+      .catch(err => {
+        copyButton.textContent = "复制失败";
+        setTimeout(() => {
+          copyButton.textContent = "复制";
+        }, 1500);
+      });
   });
 }
 
 (function init() {
   ensureOnlineGroup()
   loadOllamaModels()
+  loadConversationHistory()
 })();

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<!--
+  @Author      发光的神 (VoxShadow)
+  @Version     1.0.8
+  @Since       2026-02-05
+  @LastUpdated 2026-04-01
+  @Description 次元剑添加工具面板
+  @License     MIT
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <title>添加工具</title>
+  <link rel="stylesheet" href="../CSS/AddTool.css">
+  <link rel="stylesheet" href="../Fonts/FontAwesome/css/font-awesome.css">
+</head>
+
+<body>
+  <div class="button-panel">
+    <div class="stitle">⌥</div>
+    <div class="fa fa-times" id="close-btn"></div>
+  </div>
+  <div class="settings-container">
+    <div class="settings-panel" id="settings-panel">
+      <div class="setting-card">
+        <h3>基本信息</h3>
+        <div class="form-group">
+          <label>工具名称</label>
+          <input type="text" class="form-control" id="tool-name" placeholder="请输入工具名称">
+        </div>
+        <div class="form-group">
+          <label>菜单分类</label>
+          <select class="form-control" id="tool-category">
+            <option value="Reverse">Reverse [ 逆向 ]</option>
+            <option value="PenTest">PenTest [ 渗透 ]</option>
+            <option value="Language">Language [ 编程 ]</option>
+            <option value="Other">Other [ 其它 ]</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="setting-card">
+        <h3>路径设置</h3>
+        <div class="form-group">
+          <label>图标路径（支持：绝对路径）</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="tool-icon" placeholder="/Icons/example.ico">
+            <button class="browse-btn" id="browse-icon-btn">
+              <i class="fa fa-folder-open"></i>
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>程序路径（支持：绝对路径）</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="tool-path" placeholder="/Tools/Reverse/example.exe">
+            <button class="browse-btn" id="browse-path-btn">
+              <i class="fa fa-folder-open"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-card">
+        <h3>工具选项</h3>
+        <div class="switch-group">
+          <label class="switch-item">
+            <input type="checkbox" id="tool-uac">
+            <div class="switch"></div>
+            <span>管理员身份运行</span>
+          </label>
+          <label class="switch-item">
+            <input type="checkbox" id="tool-vip">
+            <div class="switch"></div>
+            <span>绿钻图标</span>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-cancel" id="cancel-btn">取消</button>
+          <button class="btn btn-save" id="save-btn">保存</button>
+        </div>
+      </div>
+      <!-- 防止半边 -->
+      <p></p>
+    </div>
+  </div>
+
+  <script src="../JS/AddTool.js"></script>
+</body>
+
+</html>

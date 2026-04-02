@@ -26,6 +26,7 @@ body {
     background: #181818;
     border-radius: 10px 10px 10px 10px;
     box-shadow: 0px 0px 3px 0px rgb(0 0 0 / 70%);
+    overflow: hidden;
 }
 
 .button-panel {
@@ -167,34 +168,67 @@ input[type="range"]::-webkit-slider-thumb:hover {
 }
 
 .popup {
-    position: fixed;
-    top: -1px;
+    position: absolute;
+    top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     background: rgb(0 0 0 / 80%);
     z-index: 1000;
-    border-radius: 10px;
-    transform: scale(0.98);
-    display: none;
+    display: flex;
+    opacity: 0;
+    transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+}
+
+.popup.show {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .popup-content {
     position: absolute;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%);
-    background: #ffffff;
+    transform: translate(-50%, -50%) scale(0.85);
+    background: #222;
     width: auto;
-    height: 90px;
+    height: auto;
+    min-height: 90px;
     border-radius: 10px;
     padding: 20px;
     text-align: center;
-    max-width: 300px;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    border: 1px solid #333;
+}
+
+.popup-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.popup-content::-webkit-scrollbar-track {
+    background: #333;
+    border-radius: 10px;
+}
+
+.popup-content::-webkit-scrollbar-thumb {
+    background: #f39c12;
+    border-radius: 10px;
+}
+
+.popup-content::-webkit-scrollbar-thumb:hover {
+    background: #e67e22;
+}
+
+.popup.show .popup-content {
+    transform: translate(-50%, -50%) scale(1);
 }
 
 #popup-message {
-    color: #000;
+    color: #fff;
     font-family: auto;
     font-size: 15px;
     font-weight: bold;
@@ -211,12 +245,55 @@ input[type="range"]::-webkit-slider-thumb:hover {
     font-weight: bold;
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: block;
 }
 
 #popup-ok:hover {
     transform: translateY(-2px);
 }
 
+/* MCP 配置专用弹窗样式 */
+.mcp-popup {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgb(0 0 0 / 80%);
+    z-index: 1000;
+    display: flex;
+    opacity: 0;
+    transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+}
+
+.mcp-popup.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.mcp-popup-content {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0.85);
+    background: #222;
+    width: auto;
+    height: auto;
+    max-width: 500px;
+    max-height: 80vh;
+    border-radius: 10px;
+    padding: 0;
+    text-align: center;
+    overflow: hidden;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    border: 1px solid #333;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.mcp-popup.show .mcp-popup-content {
+    transform: translate(-50%, -50%) scale(1);
+}
 
 .light {
     background: #f0f0f0;
@@ -250,7 +327,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 .stitle {
     position: absolute;
-    margin-top: -17px;
+    margin-top: -15px;
     z-index: 1;
     left: 15px;
     font-family: auto;
@@ -282,8 +359,9 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 #toast {
     position: fixed;
-    right: 25px;
-    bottom: 25px;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100%);
     background: rgba(255, 255, 255, 0.95);
     color: #111;
     padding: 10px 20px;
@@ -293,7 +371,107 @@ input[type="range"]::-webkit-slider-thumb:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     z-index: 9999;
     opacity: 0;
-    transform: translateX(100%);
     transition: transform 0.3s ease, opacity 0.3s ease;
     pointer-events: none;
+}
+
+.version-update-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 4px;
+    width: 18px;
+    height: 18px;
+    color: #fff;
+    background: rgba(1, 150, 100, 0.95);
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.version-tooltip {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: #333;
+    color: #fff;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.version-tooltip.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 主题设置样式 */
+.theme-options {
+    display: flex;
+    gap: 8px;
+    margin: 10px 0;
+    flex-wrap: wrap;
+}
+
+.theme-button {
+    background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+    border: 1px solid #3f3f3f;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.theme-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.theme-button.active {
+    background: linear-gradient(176deg, #f39c12, #de7110);
+    border-color: #f39c12;
+}
+
+.theme-preview {
+    margin-top: 15px;
+}
+
+.preview-box {
+    width: 100%;
+    height: 115px;
+    border-radius: 8px;
+}
+
+/* 主题颜色 */
+.theme-default {
+    background: #181818;
+    color: #fff;
+}
+
+.theme-dark {
+    background: #0a0a0a;
+    color: #e0e0e0;
+}
+
+.theme-light {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.theme-blue {
+    background: #1a237e;
+    color: #e3f2fd;
 }

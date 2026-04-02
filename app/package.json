@@ -1,6 +1,7 @@
 {
   "name": "MetaSword",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "逆向工具箱 - 次元剑",
-  "main": "./Core/MetaSword.js"
+  "main": "./Core/MetaSword.js",
+  "author": "字节暗流实验室"
 }

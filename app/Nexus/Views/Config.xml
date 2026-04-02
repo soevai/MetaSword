@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <config>
   <settings>
+    <tag name="MetaVersion" value="1.0.8"/>
     <tag name="AnimationStart" value="enabled"/>
     <tag name="AnimationSpeed" value="1.8"/>
-    <tag name="MetaWindowWidth" value="550"/>
-    <tag name="MetaWindowHeight" value="343"/>
+    <tag name="MetaWindowWidth" value="551"/>
+    <tag name="MetaWindowHeight" value="344"/>
   </settings>
 </config>

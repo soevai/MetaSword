@@ -24,7 +24,8 @@ pre[class*=language-] {
     padding: 1em;
     margin: .5em 0;
     overflow-x: auto;
-    border-radius: .3em
+    border-radius: .3em;
+    background-color: #2d2d2d;
 }
 
 pre[class*=language-]::-webkit-scrollbar {

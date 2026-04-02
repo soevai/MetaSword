@@ -1,0 +1,5 @@
+D:.
+├─curl
+├─radare2
+├─strings
+└─upx

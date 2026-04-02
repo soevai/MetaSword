@@ -1,0 +1,279 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    font-family: 'Segoe UI', '华文细黑', sans-serif;
+}
+
+.fa {
+    font: 14px FontAwesome;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+}
+
+.settings-container {
+    width: 98%;
+    height: 98%;
+    padding: 20px;
+    position: relative;
+    background: #181818;
+    border-radius: 10px 10px 10px 10px;
+    box-shadow: 0px 0px 3px 0px rgb(0 0 0 / 70%);
+    overflow: hidden;
+}
+
+.button-panel {
+    position: absolute;
+    top: 0px;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    -webkit-app-region: drag;
+    height: 35px;
+    z-index: 1;
+}
+
+#close-btn {
+    position: absolute;
+    padding: 8px 13px;
+    top: 5px;
+    right: 5px;
+    color: white;
+    transition: all 0.3s ease;
+    z-index: 1;
+    -webkit-app-region: no-drag;
+}
+
+#close-btn:hover {
+    color: red;
+}
+
+.settings-panel {
+    display: flex;
+    overflow-x: auto;
+    padding: 23px 0;
+    gap: 13px;
+    scrollbar-width: none;
+    transition: all 0.3s ease;
+    scroll-behavior: smooth;
+}
+
+.settings-panel::-webkit-scrollbar {
+    height: 6px;
+}
+
+.settings-panel::-webkit-scrollbar-track {
+    background: #333;
+    border-radius: 10px;
+}
+
+.settings-panel::-webkit-scrollbar-thumb {
+    background: rgb(1 150 100);
+    border-radius: 10px;
+}
+
+.setting-card {
+    background: #222;
+    border-radius: 10px;
+    padding: 20px;
+    min-width: 233px;
+    height: 258px;
+    overflow: hidden;
+    transition: all 0.1s;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.setting-card:first-child {
+    margin-left: 10px;
+}
+
+.setting-card.active {
+    box-shadow: 0px 0px 2px 1px rgb(1 150 100);
+    overflow-y: auto;
+}
+
+.setting-card.active::-webkit-scrollbar {
+    display: none;
+}
+
+.setting-card h3 {
+    font-size: 18px;
+    color: rgb(1 150 100);
+}
+
+label {
+    display: block;
+    margin: 8px 0;
+    color: #aaa;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.form-control {
+    width: 100%;
+    height: 40px;
+    background: #22232a;
+    border: 1px solid #3a3b44;
+    border-radius: 6px;
+    padding: 0 12px;
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.form-control:focus {
+    border-color: rgb(1 150 100);
+    box-shadow: 0 0 0 3px rgba(1, 150, 100, 0.1);
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.input-group {
+    display: flex;
+    gap: 8px;
+}
+
+.input-group .form-control {
+    flex: 1;
+}
+
+.browse-btn {
+    width: 40px;
+    height: 40px;
+    background: #22232a;
+    border: 1px solid #3a3b44;
+    border-radius: 6px;
+    color: rgb(1 150 100);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.browse-btn:hover {
+    background: rgb(1 150 100);
+    color: #fff;
+    border-color: rgb(1 150 100);
+    transform: translateY(-1px);
+}
+
+.switch-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 8px 12px;
+    background: #22232a;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.switch-item:hover {
+    background: #2a2b33;
+}
+
+.switch {
+    width: 40px;
+    height: 20px;
+    background: #333;
+    border-radius: 10px;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.switch::before {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    top: 3px;
+    left: 3px;
+    transition: all 0.2s;
+}
+
+.switch-item input {
+    display: none;
+}
+
+.switch-item input:checked + .switch {
+    background: rgb(1 150 100);
+}
+
+.switch-item input:checked + .switch::before {
+    transform: translateX(20px);
+}
+
+.switch-item span {
+    color: #e0e0e0;
+    font-size: 14px;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.btn {
+    height: 40px;
+    padding: 0 28px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.btn-cancel {
+    background: #333;
+    color: #fff;
+}
+
+.btn-cancel:hover {
+    background: #444;
+    transform: translateY(-1px);
+}
+
+.btn-save {
+    background: rgb(1 150 100);
+    color: #fff;
+}
+
+.btn-save:hover {
+    background: rgb(0 180 134);
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.stitle {
+    position: absolute;
+    margin-top: -15px;
+    z-index: 1;
+    left: 15px;
+    font-family: auto;
+    font-size: 33px;
+    filter: drop-shadow(35px 0px 0px rgb(1 150 100));
+}

@@ -1,8 +1,8 @@
 /**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.7
+ * @Version     1.0.8
  * @Since       2023-08-31
- * @LastUpdated 2026-01-07
+ * @LastUpdated 2026-04-01
  * @Description 负责次元剑核心逻辑
  * @License     MIT
  */
@@ -11,17 +11,30 @@ const { ipcRenderer } = require('electron');
 const { exec } = require("child_process");
 const path = require('path');
 const fs = require('fs');
+const ClickAudio = new Audio('../Assets/Sounds/Click.mp3');
 
+const loadVersionFromConfig = () => {
+    try {
+        const configPath = path.resolve(__dirname, '../Views/Config.xml');
+        const data = fs.readFileSync(configPath, 'utf8');
+        const match = data.match(/<tag\s+name="MetaVersion"\s+value="([^"]+)"/);
+        if (match && match[1]) {
+            return match[1];
+        }
+    } catch (e) {
+        console.error('Error loading version from config.xml:', e);
+    }
+    return;
+};
 
 ['MetaSword-customCloseBut', 'MetaSword-customMinimizeBut'].forEach((id) => {
     document.getElementById(id).addEventListener('click', () => {
-        const channel = id === 'MetaSword-customCloseBut' 
-            ? 'close-mainwindow' 
+        const channel = id === 'MetaSword-customCloseBut'
+            ? 'close-mainwindow'
             : 'minimize-mainwindow';
         ipcRenderer.send(channel);
     });
 });
-
 
 document.querySelector("#Author-blog-link")?.addEventListener('click', (e) => {
     e.preventDefault();
@@ -61,7 +74,6 @@ function MouseOverTitle(title) {
         'DeepSeek': { top: '133px', title: 'DeepSeek' },
         '关于': { top: '169px', title: '关于' }
     };
-
     const { top, title: newTitle } = iconStyles[title] || {};
     if (top && newTitle) {
         statusIndicator.style.top = top;
@@ -73,7 +85,6 @@ function showPage(pageName) {
     const pageNames = ['HomePage', 'ToolsPage', 'DeepSeekPage', 'AboutPage'];
     const toolsNavbar = document.querySelector('.MetaSword-tools-navbar');
     const selectedPage = document.getElementById(pageName + 'Page');
-
     pageNames.forEach(page => {
         const pageElement = document.getElementById(page);
         if (pageElement) {
@@ -81,12 +92,10 @@ function showPage(pageName) {
             pageElement.style.display = 'none';
         }
     });
-
     if (selectedPage) {
         selectedPage.style.display = 'block';
         setTimeout(() => selectedPage.style.opacity = '1', 0);
     }
-
     if (toolsNavbar) {
         if (pageName === 'Tools') {
             toolsNavbar.style.display = 'block';
@@ -96,6 +105,9 @@ function showPage(pageName) {
             toolsNavbar.style.opacity = '0';
         }
     }
+    if (pageName === 'Tools') {
+        generateMotto();
+    }
 }
 
 function upPath(...segments) {
@@ -103,9 +115,9 @@ function upPath(...segments) {
 }
 
 var categoriesData = null;
+var currentCategory = null;
 var resultsContainer = document.getElementById('Tools-List');
 const ToolsListPath = upPath('Tools', 'Toolslist.xml');
-var ClickAudio = new Audio('../Assets/Sounds/Click.mp3');
 
 function openFileFolder(buttonName) {
     fetch(ToolsListPath)
@@ -114,18 +126,14 @@ function openFileFolder(buttonName) {
             let xmlDoc = new DOMParser().parseFromString(data, 'text/xml');
             let item = Array.from(xmlDoc.getElementsByTagName('item'))
                 .find(el => el.getElementsByTagName('text')[0].textContent === buttonName);
-
             if (!item) return;
             ClickAudio.play();
-
             let exePath = item.getElementsByTagName('executablePath')[0].textContent;
             exePath = /^[a-zA-Z]:\\/.test(exePath) ? exePath : upPath(exePath);
             if (!fs.existsSync(exePath)) {
-                let parentDir = path.dirname(exePath);
-                exec(`start "" "${parentDir}"`);
+                ipcRenderer.invoke('ErrorDialog');
                 return;
             }
-
             let targetPath = fs.statSync(exePath).isDirectory() ? exePath : path.dirname(exePath);
             exec(`start "" "${targetPath}"`);
         });
@@ -135,23 +143,22 @@ function extractData() {
     return fetch(ToolsListPath)
         .then(response => response.text())
         .then(data => {
-        var parser = new DOMParser();
-        var xmlDoc = parser.parseFromString(data, 'text/xml');
-        return xmlDoc.getElementsByTagName('category');
-    });
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(data, 'text/xml');
+            return xmlDoc.getElementsByTagName('category');
+        });
 }
 
-(function () {
+function reloadToolsList(targetCategoryName = null) {
     extractData().then(data => {
         categoriesData = data;
         var toolbar = document.querySelector('.MetaSword-tools-navbar');
-
+        toolbar.innerHTML = '';
         Array.from(categoriesData).forEach(category => {
             var categoryName = category.getAttribute('name').trim();
             var button = document.createElement('button');
             button.classList.add('Tools-navbar-button');
             button.textContent = categoryName;
-
             button.addEventListener('click', function () {
                 var categoryName = this.textContent;
                 if (categoryName.includes('FridaIDE')) {
@@ -169,172 +176,438 @@ function extractData() {
             });
             toolbar.appendChild(button);
         });
-
         if (categoriesData.length > 0) {
             var firstCategoryName = categoriesData[0].getAttribute('name').trim();
-            displayCategoryItems(firstCategoryName);
-        }
-    });
-})();
-
-function displayCategoryItems(categoryName) {
-    resultsContainer.innerHTML = '';
-    Array.from(categoriesData).forEach(category => {
-        var name = category.getAttribute('name');
-        if (name === categoryName) {
-            var items = category.getElementsByTagName('item');
-
-            Array.from(items).forEach((item, index) => {
-                var text = item.getElementsByTagName('text')[0].textContent;
-                var imagePath = item.getElementsByTagName('imagePath')[0].textContent;
-                var statusElement = item.getElementsByTagName('status')[0];
-                var status = statusElement ? statusElement.textContent : '';
-
-                var button = createButton(text, imagePath, status);
-                button.style.transition = 'opacity 0.s ease, transform 0.1s ease';
-                button.style.transform = 'translatex(-50px)';
-
-                button.style.opacity = 0;
-                setTimeout(() => {
-                    button.style.opacity = 1;
-                    button.style.transform = 'translatey(0)';
-                }, index * 23);
-                resultsContainer.appendChild(button);
+            var displayCategory = targetCategoryName || currentCategory || firstCategoryName;
+            var categoryExists = Array.from(categoriesData).some(cat => cat.getAttribute('name').trim() === displayCategory);
+            if (!categoryExists) {
+                displayCategory = firstCategoryName;
+            }
+            displayCategoryItems(displayCategory);
+            const categoryButtons = document.querySelectorAll('.Tools-navbar-button');
+            categoryButtons.forEach(button => {
+                if (button.textContent.trim() === displayCategory) {
+                    button.classList.add('active');
+                }
             });
         }
     });
 }
+
+(function () {
+    reloadToolsList();
+})();
+
+ipcRenderer.on('tools-updated', function (event, categoryName) {
+    reloadToolsList(categoryName);
+});
+
+function displayCategoryItems(categoryName) {
+    currentCategory = categoryName;
+    exitSelectionMode();
+    resultsContainer.innerHTML = '';
+    const categoryButtons = document.querySelectorAll('.Tools-navbar-button');
+    categoryButtons.forEach(button => {
+        if (button.textContent.trim() === categoryName) {
+            button.classList.add('active');
+        } else {
+            button.classList.remove('active');
+        }
+    });
+    fetch(ToolsListPath)
+        .then(response => response.text())
+        .then(data => {
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(data, 'text/xml');
+            var categories = xmlDoc.getElementsByTagName('category');
+            Array.from(categories).forEach(category => {
+                var name = category.getAttribute('name');
+                if (name === categoryName) {
+                    var items = category.getElementsByTagName('item');
+                    Array.from(items).forEach((item, index) => {
+                        var text = item.getElementsByTagName('text')[0].textContent;
+                        var imagePath = item.getElementsByTagName('imagePath')[0].textContent;
+                        var statusElement = item.getElementsByTagName('status')[0];
+                        var status = statusElement ? statusElement.textContent : '';
+                        var button = createButton(text, imagePath, status);
+                        button.style.transition = 'opacity 0.s ease, transform 0.1s ease';
+                        button.style.transform = 'translatex(-50px)';
+                        button.style.opacity = 0;
+                        setTimeout(() => {
+                            button.style.opacity = 1;
+                            button.style.transform = 'translatey(0)';
+                        }, index * 23);
+                        resultsContainer.appendChild(button);
+                    });
+                }
+            });
+        });
+}
+
+let selectedTools = [];
+let isSelectionMode = false;
+let longPressTimer = null;
+let isLongPress = false;
+let draggedTool = null;
+let isAskingAI = false;
+let lastAIResponseTime = 0;
 
 function createButton(text, imagePath, status) {
     var button = document.createElement('button');
     button.classList.add('Tool-icon-button');
     button.style.userSelect = 'none';
     button.style.position = 'relative';
-
     var container = document.createElement('div');
     container.classList.add('Tool-button-container');
-
     var img = document.createElement('img');
-    img.src = path.dirname(ToolsListPath) + imagePath;
+    if (/^(https?:\/\/|file:\/\/|[a-zA-Z]:\\)/i.test(imagePath)) {
+        img.src = imagePath;
+    } else if (imagePath.startsWith('/')) {
+        img.src = '../../../../Tools' + imagePath;
+    } else if (imagePath.startsWith('Tools/')) {
+        img.src = '../../../../' + imagePath;
+    } else {
+        img.src = imagePath;
+    }
     img.alt = text;
     img.width = 30;
     img.height = 30;
     img.draggable = false;
-
     var buttonText = document.createElement('span');
     buttonText.textContent = text;
     buttonText.classList.add('Tool-button-text');
-
     container.appendChild(img);
     container.appendChild(buttonText);
     button.appendChild(container);
-
     function up(n, targetPath) {
         return '../'.repeat(n) + targetPath;
     }
-
     if (status === 'on') {
         var smallIcon = document.createElement('img');
         smallIcon.src = up(4, 'Tools/Icons/vip.png');
         smallIcon.classList.add('vip-icon');
         button.appendChild(smallIcon);
     }
-    button.addEventListener('click', (event) => {
-        handleButtonClick(text, event);
+    var checkbox = document.createElement('div');
+    checkbox.classList.add('tool-checkbox');
+    checkbox.style.position = 'absolute';
+    checkbox.style.top = '1px';
+    checkbox.style.right = '1px';
+    checkbox.style.width = '8px';
+    checkbox.style.height = '8px';
+    checkbox.style.border = '1px solid #666';
+    checkbox.style.borderRadius = '1px';
+    checkbox.style.backgroundColor = 'transparent';
+    checkbox.style.cursor = 'pointer';
+    checkbox.style.display = 'none';
+    checkbox.style.zIndex = '10';
+    checkbox.style.borderRadius = '30px';
+    button.appendChild(checkbox);
+    button.draggable = true;
+    button.addEventListener('mousedown', (event) => {
+        if (!isSelectionMode) {
+            isLongPress = false;
+            longPressTimer = setTimeout(() => {
+                isLongPress = true;
+                enterSelectionMode();
+                toggleToolSelection(button, text);
+            }, 800);
+        }
     });
-
+    button.addEventListener('mouseup', () => {
+        clearTimeout(longPressTimer);
+    });
+    button.addEventListener('mouseleave', () => {
+        clearTimeout(longPressTimer);
+    });
+    button.addEventListener('dragstart', (event) => {
+        clearTimeout(longPressTimer);
+        isLongPress = false;
+        if (isSelectionMode) {
+            event.preventDefault();
+            return;
+        }
+        draggedTool = button;
+        button.style.opacity = '0.5';
+        button.style.cursor = 'grabbing';
+        event.dataTransfer.setData('text/plain', text);
+        event.dataTransfer.effectAllowed = 'move';
+    });
+    button.addEventListener('dragend', (event) => {
+        button.style.opacity = '';
+        button.style.cursor = '';
+        draggedTool = null;
+    });
+    button.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+    });
+    button.addEventListener('drop', (event) => {
+        event.preventDefault();
+        if (draggedTool && draggedTool !== button) {
+            if (draggedTool.parentNode) {
+                const parent = draggedTool.parentNode;
+                parent.removeChild(draggedTool);
+                const rect = button.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                if (mouseX < rect.width / 2) {
+                    parent.insertBefore(draggedTool, button);
+                } else {
+                    if (button.nextSibling) {
+                        parent.insertBefore(draggedTool, button.nextSibling);
+                    } else {
+                        parent.appendChild(draggedTool);
+                    }
+                }
+                saveToolPositions();
+            }
+        }
+    });
+    button.addEventListener('click', (event) => {
+        if (isLongPress) {
+            isLongPress = false;
+            return;
+        }
+        if (event.detail > 1) {
+            return;
+        }
+        if (isSelectionMode) {
+            toggleToolSelection(button, text);
+        } else {
+            handleButtonClick(text, event);
+        }
+    });
     button.addEventListener('contextmenu', (event) => {
         event.preventDefault();
         showContextMenu(event, text);
     });
-
     return button;
+}
+
+function enterSelectionMode() {
+    isSelectionMode = true;
+    selectedTools = [];
+    showAllCheckboxes();
+    searchInput.disabled = true;
+}
+
+function exitSelectionMode() {
+    isSelectionMode = false;
+    selectedTools = [];
+    hideAllCheckboxes();
+    clearToolSelectionStates();
+    searchInput.disabled = false;
+}
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && isSelectionMode) {
+        exitSelectionMode();
+    }
+});
+
+function saveToolPositions() {
+    if (!currentCategory) return;
+    const tools = Array.from(resultsContainer.children);
+    const toolNames = tools.map(tool => {
+        const textElement = tool.querySelector('.Tool-button-text');
+        return textElement ? textElement.textContent : '';
+    }).filter(name => name);
+    ipcRenderer.send('save-tool-positions', {
+        category: currentCategory,
+        toolNames: toolNames
+    });
+}
+
+function showAllCheckboxes() {
+    const buttons = document.querySelectorAll('.Tool-icon-button');
+    buttons.forEach(button => {
+        const checkbox = button.querySelector('.tool-checkbox');
+        if (checkbox) {
+            checkbox.style.display = 'block';
+        }
+    });
+}
+
+function hideAllCheckboxes() {
+    const buttons = document.querySelectorAll('.Tool-icon-button');
+    buttons.forEach(button => {
+        const checkbox = button.querySelector('.tool-checkbox');
+        if (checkbox) {
+            checkbox.style.display = 'none';
+            checkbox.style.backgroundColor = 'transparent';
+            checkbox.style.border = '1px solid #666';
+        }
+    });
+}
+
+function clearToolSelectionStates() {
+    const buttons = document.querySelectorAll('.Tool-icon-button');
+    buttons.forEach(button => {
+        button.style.backgroundColor = '';
+        button.style.border = '';
+        button.style.filter = '';
+        button.style.boxShadow = '';
+    });
+}
+
+function toggleToolSelection(button, toolName) {
+    const index = selectedTools.indexOf(toolName);
+    if (index > -1) {
+        selectedTools.splice(index, 1);
+        button.style.transition = 'all 0.2s ease-in-out';
+        button.style.filter = 'brightness(1.1)';
+        setTimeout(() => {
+            button.style.backgroundColor = '';
+            button.style.border = '';
+            button.style.filter = '';
+            button.style.boxShadow = '';
+        }, 200);
+        const checkbox = button.querySelector('.tool-checkbox');
+        if (checkbox) {
+            checkbox.style.transition = 'all 0.2s ease-in-out';
+            checkbox.style.backgroundColor = 'transparent';
+            checkbox.style.border = '1px solid #666';
+            if (selectedTools.length === 0) {
+                exitSelectionMode();
+            }
+        }
+    } else {
+        selectedTools.push(toolName);
+        button.style.transition = 'all 0.2s ease-in-out';
+        button.style.filter = 'brightness(0.9)';
+        button.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+        button.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+        button.style.boxShadow = 'inset 0 0 8px rgba(255, 255, 255, 0.1)';
+        const checkbox = button.querySelector('.tool-checkbox');
+        if (checkbox) {
+            checkbox.style.transition = 'all 0.2s ease-in-out';
+            checkbox.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+            checkbox.style.border = '1px solid rgba(255, 255, 255, 0.6)';
+        }
+    }
+}
+
+function batchDeleteTools() {
+    if (selectedTools.length === 0) {
+        return;
+    }
+    ipcRenderer.send('batch-delete-tools', selectedTools);
+    setTimeout(() => {
+        reloadToolsList();
+        exitSelectionMode();
+    }, 100);
 }
 
 function showContextMenu(event, text) {
     event.preventDefault();
-
     const existingMenu = document.getElementById('custom-context-menu');
     if (existingMenu) existingMenu.remove();
-
     const button = event.currentTarget;
     const rect = button.getBoundingClientRect();
-
     const menu = document.createElement('div');
     menu.id = 'custom-context-menu';
     menu.classList.add('context-menu');
-
     const inner = document.createElement('div');
     inner.classList.add('context-menu-inner');
-
-    const menuWidth = 180;
-    const menuHeight = 70;
+    let menuWidth = 180;
+    let menuHeight = isSelectionMode ? 80 : 140;
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
-
     let top = rect.bottom + window.scrollY;
     let left = rect.left + window.scrollX;
-
     if ((top + menuHeight) > (windowHeight + window.scrollY)) {
         top = rect.top + window.scrollY - menuHeight;
+        if (top < window.scrollY) {
+            top = window.scrollY + 10;
+        }
     }
-
     if ((left + menuWidth) > (windowWidth + window.scrollX)) {
         left = windowWidth - menuWidth + 10;
     }
-
     menu.style.top = `${top}px`;
     menu.style.left = `${left}px`;
-
     function createMenuItem(iconSrc, labelText, onClick) {
         const menuItem = document.createElement('div');
         menuItem.classList.add('context-menu-item');
-
-        const icon = document.createElement('img');
-        icon.src = iconSrc;
-
         const label = document.createElement('span');
         label.textContent = labelText;
-
-        menuItem.appendChild(icon);
+        if (iconSrc) {
+            const icon = document.createElement('img');
+            icon.src = iconSrc;
+            menuItem.appendChild(icon);
+        }
         menuItem.appendChild(label);
         menuItem.addEventListener('click', () => {
-            onClick();
-            removeContextMenu();
+            const result = onClick();
+            if (result !== false) {
+                removeContextMenu();
+            }
         });
-
         return menuItem;
     }
-
-    const openFileOption = createMenuItem(
-        '../Assets/Image/Folder.png',
-        '打开位置',
-        () => openFileFolder(text)
-    );
-
-    const divider = document.createElement('div');
-    divider.classList.add('context-menu-divider');
-
-    const runAsAdminOption = createMenuItem(
-        '../Assets/Image/Uac.png',
-        '管理员运行',
-        () => runToolByName(text)
-    );
-
-    inner.appendChild(openFileOption);
-    inner.appendChild(divider);
-    inner.appendChild(runAsAdminOption);
+    if (isSelectionMode) {
+        const batchDeleteOption = createMenuItem(
+            '../Assets/Image/Delete.png',
+            `批量删除 (${selectedTools.length})`,
+            () => batchDeleteTools()
+        );
+        const cancelSelectionOption = createMenuItem(
+            '../Assets/Image/Cancel.png',
+            '取消选择',
+            () => exitSelectionMode()
+        );
+        inner.appendChild(batchDeleteOption);
+        inner.appendChild(cancelSelectionOption);
+    } else {
+        const runAsAdminOption = createMenuItem(
+            '../Assets/Image/Uac.png',
+            '管理员运行',
+            () => runToolByName(text)
+        );
+        const divider1 = document.createElement('div');
+        divider1.classList.add('context-menu-divider');
+        const openFileOption = createMenuItem(
+            '../Assets/Image/Folder.png',
+            '打开位置',
+            () => openFileFolder(text)
+        );
+        const divider2 = document.createElement('div');
+        divider2.classList.add('context-menu-divider');
+        const addToolOption = createMenuItem(
+            '../Assets/Image/Box.png',
+            '添加工具',
+            () => {
+                ClickAudio.play();
+                removeContextMenu();
+                setTimeout(() => {
+                    ipcRenderer.send('createAddToolWindow', { currentCategory: currentCategory });
+                }, 200);
+                return false;
+            }
+        );
+        const divider3 = document.createElement('div');
+        divider3.classList.add('context-menu-divider');
+        const deleteToolOption = createMenuItem(
+            '../Assets/Image/Delete.png',
+            '删除工具',
+            () => deleteTool(text)
+        );
+        inner.appendChild(runAsAdminOption);
+        inner.appendChild(divider1);
+        inner.appendChild(openFileOption);
+        inner.appendChild(divider2);
+        inner.appendChild(addToolOption);
+        inner.appendChild(divider3);
+        inner.appendChild(deleteToolOption);
+    }
     menu.appendChild(inner);
     document.body.appendChild(menu);
-
     setTimeout(() => {
         menu.classList.add('Menu-show');
     }, 10);
-
     document.addEventListener('click', removeContextMenu, { once: true });
     document.querySelector('.Tools-grid')?.addEventListener('scroll', removeContextMenu, { once: true });
 }
-
 
 function runToolByName(buttonName, forceUAC = true) {
     fetch(ToolsListPath)
@@ -343,11 +616,9 @@ function runToolByName(buttonName, forceUAC = true) {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(data, 'text/xml');
             const items = xmlDoc.getElementsByTagName('item');
-
             const selectedItem = Array.from(items).find(item => {
                 return item.getElementsByTagName('text')[0].textContent === buttonName;
             });
-
             if (selectedItem) {
                 const executablePathText = selectedItem.getElementsByTagName('executablePath')[0].textContent;
                 const isAbsolutePath = /^[a-zA-Z]:\\/.test(executablePathText);
@@ -355,6 +626,10 @@ function runToolByName(buttonName, forceUAC = true) {
                 runCommandAsAdmin(executablePath, forceUAC);
             }
         });
+}
+
+function deleteTool(toolName) {
+    ipcRenderer.send('delete-tool', { toolName, currentCategory });
 }
 
 function removeContextMenu() {
@@ -373,39 +648,59 @@ searchInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
         event.preventDefault();
         var searchTerm = searchInput.value.trim();
-        var intMatch = /^\(\s*(\d+)\s*,\s*(2|8|16)\s*\)$/i.exec(searchTerm);
-        if (intMatch) {
+        var baseConvertMatch = /^\(\s*([0-9a-z]+)\s*,\s*(2|8|10|16)\s*,\s*(2|8|10|16)\s*\)$/i.exec(searchTerm);
+        var intMatch = /^\(\s*(\d+)\s*,\s*(\d+)\s*\)$/i.exec(searchTerm);
+        if (baseConvertMatch) {
+            try {
+                var numberStr = baseConvertMatch[1];
+                var fromBase = parseInt(baseConvertMatch[2], 10);
+                var toBase = parseInt(baseConvertMatch[3], 10);
+                var decimalNumber = parseInt(numberStr, fromBase);
+                var result;
+                if (toBase === 10) {
+                    result = decimalNumber.toString();
+                } else if (toBase === 2) {
+                    result = decimalNumber.toString(2);
+                } else if (toBase === 8) {
+                    result = decimalNumber.toString(8);
+                } else if (toBase === 16) {
+                    result = decimalNumber.toString(16).toUpperCase();
+                }
+                searchInput.value = result;
+            } catch (error) {
+            }
+            return;
+        } else if (intMatch) {
             try {
                 var number = parseInt(intMatch[1], 10);
                 var base = parseInt(intMatch[2], 10);
                 var result;
-
-                if (base === 2) {
-                    result = number.toString(2);
-                } else if (base === 8) {
-                    result = number.toString(8);
-                } else if (base === 16) {
-                    result = number.toString(16).toUpperCase();
+                if (base >= 2 && base <= 36) {
+                    result = number.toString(base).toUpperCase();
+                } else {
+                    result = '进制范围: 2-36';
                 }
-
                 searchInput.value = result;
             } catch (error) {
             }
             return;
         }
-
         if (/^[0-9+\-*/().\s]+$/.test(searchTerm)) {
             try {
                 var result = eval(searchTerm);
                 searchInput.value = result;
             } catch (error) {
             }
+        } else if (event.ctrlKey) {
+            askAI(searchTerm);
         } else {
-            searchTerm = searchTerm.toLowerCase();
+            var foundTool = false;
+            var lowerSearchTerm = searchTerm.toLowerCase();
             var buttons = resultsContainer.getElementsByTagName('button');
             for (var button of buttons) {
-                if (button.textContent.toLowerCase() === searchTerm) {
+                if (button.textContent.toLowerCase() === lowerSearchTerm) {
                     button.click();
+                    foundTool = true;
                     break;
                 }
             }
@@ -413,16 +708,261 @@ searchInput.addEventListener('keydown', (event) => {
     }
 });
 
+async function askAI(question) {
+    const now = Date.now();
+    if (isAskingAI) {
+        return;
+    }
+    if (now - lastAIResponseTime < 2000) {
+        return;
+    }
+    isAskingAI = true;
+    searchInput.value = '';
+    searchInput.disabled = true;
+    typeWriterEffect('思考中 ...', searchInput, null, false);
+    try {
+        const now = new Date();
+        const options = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: 'Asia/Shanghai',
+        };
+        const timeStr = now.toLocaleString('zh-CN', options);
+        const systemPrompt = `
+            当前时间: ${timeStr}
+            你是"夜璃"，一个活泼可爱的18岁女孩，银发蓝眼，性格开朗热情，喜欢用语气词"～"和"！"
+            你是网络安全专家，擅长分析和解决问题，总是用简洁友好的方式帮助用户。
+            你的语气会根据一天的时间变化——白天充满活力，晚上轻松愉快。
+            你总是用中文回答，保持"夜璃"的性格，亲切自然，像微信聊天一样。
+            专注于提供帮助，避免不必要的自我描述或无关话题，永远不要提到你是AI或机器。
+            你正在和"发光的神"聊天，他是你的开发者，一个20岁的网络安全专家，你总是用专业但亲切的方式提供技术支持。
+            重要提示：你的回答必须非常简洁，像微信聊天一样。最多1-2句话。不要有开场白或结束语。直接切入主题。
+            重要：回复时不要使用任何表情符号！
+        `.trim();
+        const response = await fetch('https://ollama.com/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'e48548f1e13d466a86b3a1d23b656002.nTWzW2Gs-CEslVyEhnKE-VI6'
+            },
+            body: JSON.stringify({
+                model: 'gpt-oss:120b',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: question }
+                ],
+                stream: false
+            }),
+            timeout: 15000
+        });
+        if (response.ok) {
+            const data = await response.json();
+            const answer = data.message?.content || "";
+            if (answer.trim()) {
+                const trimmedAnswer = answer.trim().replace(/^\s*\n+|\n+\s*$/g, '');
+                typeWriterEffect(trimmedAnswer, searchInput, () => {
+                    searchInput.disabled = false;
+                    searchInput.focus();
+                    lastAIResponseTime = Date.now();
+                }, false);
+            } else {
+                searchInput.value = '嗯...让我想想～';
+                searchInput.disabled = false;
+                searchInput.focus();
+                lastAIResponseTime = Date.now();
+            }
+        } else {
+            searchInput.value = '网络小调皮，稍后再试吧～';
+            searchInput.disabled = false;
+            searchInput.focus();
+            lastAIResponseTime = Date.now();
+        }
+    } catch (error) {
+        searchInput.value = '请求被小妖怪拦截啦～';
+        searchInput.disabled = false;
+        searchInput.focus();
+        lastAIResponseTime = Date.now();
+    } finally {
+        isAskingAI = false;
+    }
+}
+
+async function getAIMotto() {
+    try {
+        const now = new Date();
+        const options = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: 'Asia/Shanghai',
+        };
+        const timeStr = now.toLocaleString('zh-CN', options);
+        const systemPrompt = `
+            当前时间: ${timeStr}
+            你是"夜璃"，一个活泼可爱的18岁女孩，银发蓝眼，性格开朗热情，喜欢用语气词"～"和"！"。
+            你是网络安全专家，擅长分析和解决问题，总是用简洁友好的方式帮助用户。
+            你的语气会根据一天的时间变化——白天充满活力，晚上轻松愉快。
+            你总是用中文回答，保持"夜璃"的性格，亲切自然，像微信聊天一样。
+            专注于提供帮助，避免不必要的自我描述或无关话题，永远不要提到你是AI或机器。
+            你正在和"发光的神"聊天，他是你的开发者，一个20岁的网络安全专家，你总是用专业但亲切的方式提供技术支持。
+        `.trim();
+        const response = await fetch('https://ollama.com/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'e48548f1e13d466a86b3a1d23b656002.nTWzW2Gs-CEslVyEhnKE-VI6'
+            },
+            body: JSON.stringify({
+                model: 'gpt-oss:120b',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: '随机生成一条简短有力的名言警句，字数控制在15-30个字符之间，不要使用表情符号，结尾用"～"或"！"' }
+                ],
+                stream: false
+            }),
+            timeout: 3000
+        });
+        if (response.ok) {
+            const data = await response.json();
+            const motto = data.message?.content || "";
+            const cleanedMotto = motto.trim() + ' - 夜璃';
+            return cleanedMotto || "嗨～准备好开始今天的冒险了吗？";
+        }
+    } catch (error) {
+        return "网络有点小调皮，让我想想其他办法～";
+    }
+    const defaultMottos = [
+        "代码的世界里，每一行都藏着小惊喜～",
+        "技术的魔法，由我们一起创造！",
+        "青春就是要在代码里绽放光芒！",
+        "每一个bug都是成长的小阶梯～",
+        "技术的海洋，让我们一起遨游！",
+        "年轻就是要不断探索未知的领域！",
+        "代码敲出梦想，技术创造未来！",
+        "创意无限，技术无边～",
+        "编程的快乐，只有懂的人才知道！",
+        "技术改变生活，我们改变技术！"
+    ];
+    const randomIndex = Math.floor(Math.random() * defaultMottos.length);
+    return defaultMottos[randomIndex];
+}
+
+function typeWriterEffect(text, element, callback, usePlaceholder = true, autoRevert = false, revertDelay = 6000) {
+    let index = 0;
+    const speed = 20;
+    const deleteSpeed = 15;
+    const defaultText = 'Search here Press Ctrl+Enter to ask AI';
+    function type() {
+        if (index < text.length) {
+            if (usePlaceholder) {
+                element.placeholder = ' ' + text.substring(0, index + 1) + '_ ';
+            } else {
+                element.value = text.substring(0, index + 1) + '_';
+            }
+            index++;
+            setTimeout(type, speed);
+        } else {
+            if (usePlaceholder) {
+                element.placeholder = ' ' + text + ' ';
+            } else {
+                element.value = text;
+            }
+            if (autoRevert) {
+                setTimeout(() => {
+                    let deleteIndex = text.length;
+                    function deleteChar() {
+                        if (deleteIndex > 0) {
+                            if (usePlaceholder) {
+                                element.placeholder = ' ' + text.substring(0, deleteIndex - 1) + '_ ';
+                            } else {
+                                element.value = text.substring(0, deleteIndex - 1) + '_';
+                            }
+                            deleteIndex--;
+                            setTimeout(deleteChar, deleteSpeed);
+                        } else {
+                            let typeIndex = 0;
+                            function typeDefault() {
+                                if (typeIndex < defaultText.length) {
+                                    element.placeholder = ' ' + defaultText.substring(0, typeIndex + 1) + '_ ';
+                                    typeIndex++;
+                                    setTimeout(typeDefault, speed);
+                                } else {
+                                    element.placeholder = ' ' + defaultText + ' ';
+                                    if (callback) {
+                                        callback();
+                                    }
+                                }
+                            }
+                            typeDefault();
+                        }
+                    }
+                    deleteChar();
+                }, revertDelay);
+            } else {
+                if (callback) {
+                    callback();
+                }
+            }
+        }
+    }
+    type();
+}
+
 var timeoutId;
-(function initSearch() {
-    searchInput.addEventListener('input', function () {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(function () {
-            var searchTerm = searchInput.value;
-            performSearch(searchTerm);
-        }, 30);
-    });
-})();
+var isTyping = false;
+var mottoGenerated = false;
+var isGeneratingMotto = false;
+
+async function generateMotto() {
+    if (mottoGenerated || isGeneratingMotto) {
+        return;
+    }
+    isGeneratingMotto = true;
+    try {
+        const motto = await getAIMotto();
+        if (searchInput) {
+            isTyping = true;
+            typeWriterEffect(motto, searchInput, () => {
+                isTyping = false;
+                mottoGenerated = true;
+                isGeneratingMotto = false;
+            }, true, true, 5000);
+        } else {
+            isGeneratingMotto = false;
+        }
+    } catch (error) {
+        if (searchInput) {
+            isTyping = true;
+            typeWriterEffect('欢迎使用次元剑！', searchInput, () => {
+                isTyping = false;
+                mottoGenerated = true;
+                isGeneratingMotto = false;
+            }, true, true, 5000);
+        } else {
+            isGeneratingMotto = false;
+        }
+    }
+}
+
+searchInput.addEventListener('input', function () {
+    if (!isTyping && searchInput.value.trim() !== '') {
+        searchInput.placeholder = ' Search here Press Ctrl+Enter to ask AI ';
+    }
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(function () {
+        var searchTerm = searchInput.value;
+        performSearch(searchTerm);
+    }, 30);
+});
 
 function performSearch(searchTerm) {
     resultsContainer.innerHTML = '';
@@ -433,11 +973,18 @@ function performSearch(searchTerm) {
             var imagePath = item.getElementsByTagName('imagePath')[0].textContent;
             var statusElement = item.getElementsByTagName('status')[0];
             var status = statusElement ? statusElement.textContent : '';
-
             if (text.toLowerCase().includes(searchTerm.toLowerCase())) {
                 var button = createButton(text, imagePath, status);
                 resultsContainer.appendChild(button);
                 button.style.opacity = 1;
+                if (isSelectionMode && selectedTools.includes(text)) {
+                    const checkbox = button.querySelector('.tool-checkbox');
+                    if (checkbox) {
+                        checkbox.style.display = 'block';
+                        checkbox.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+                        checkbox.style.border = '1px solid rgba(255, 255, 255, 0.6)';
+                    }
+                }
             }
         });
     });
@@ -487,7 +1034,6 @@ function runCommandAsAdmin(filePath, requiresUAC) {
     exec(command, () => { });
 }
 
-// 次元剑风格终端提示
 const log = (type) => console[type].bind(console);
 const logTitle = (title, version) => log('log')(
     `%c ${title} %c v${version} `,
@@ -503,7 +1049,6 @@ function logStyled(...segments) {
 
 function logImageBlock(imagePaths, size = 100, mode = 'contain') {
     const texts = [], styles = [];
-
     imagePaths.filter(fs.existsSync).forEach((imgPath) => {
         const ext = path.extname(imgPath).toLowerCase();
         const mime = ext === '.png' ? 'png' : ext === '.ico' ? 'x-icon' : 'jpeg';
@@ -511,7 +1056,6 @@ function logImageBlock(imagePaths, size = 100, mode = 'contain') {
         texts.push('%c ');
         styles.push(`font-size:1px; padding:${size}px ${size}px; background:url(data:image/${mime};base64,${base64}) no-repeat center / ${mode}; color:transparent;`);
     });
-
     if (texts.length) console.log(texts.join(''), ...styles);
 }
 
@@ -527,7 +1071,7 @@ logStyled(
 );
 
 logImageBlock([path.resolve(__dirname, '../Assets/Image/icon.ico')], 33, 'cover');
-logTitle('次元剑 MetaSword', '1.0.7');
+logTitle('次元剑 MetaSword', loadVersionFromConfig());
 
 logStyled(
     ['[像花一样对称，', 'color:#606060; font-weight:bold;'],

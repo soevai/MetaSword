@@ -1,26 +1,24 @@
 /**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.7
+ * @Version     1.0.8
  * @Since       2023-08-31
- * @LastUpdated 2026-01-07
+ * @LastUpdated 2026-04-01
  * @Description 负责 Frida 编辑器逻辑
  * @License     MIT
  */
 
+const { ipcRenderer } = require('electron');
 var editor = ace.edit("editor");
-editor.setShowPrintMargin(false);
-editor.setTheme("ace/theme/one_dark");
-editor.session.setMode("ace/mode/javascript");
-
-editor.setValue(`function main() {
-    console.log("Hello, MetaSword!");
-}
-main();`, 1);
-
 var currentFontSize = 20;
 var minFontSize = 15;
 var maxFontSize = 35;
 
+editor.setTheme("ace/theme/one_dark");
+editor.session.setMode("ace/mode/javascript");
+editor.setValue(`function main() {
+    console.log("Hello, MetaSword!");
+}
+main();`, 1);
 editor.setOptions({
     fontSize: currentFontSize + "px",
     enableBasicAutocompletion: true,
@@ -34,29 +32,22 @@ document.addEventListener('keydown', function (e) {
         if (e.key === '=' || e.key === '+') {
             e.preventDefault();
             currentFontSize = Math.min(currentFontSize + 1, maxFontSize);
-            editor.setOptions({
-                fontSize: currentFontSize + "px"
-            });
+            editor.setOptions({ fontSize: currentFontSize + "px" });
         }
         if (e.key === '-' || e.key === '_') {
             e.preventDefault();
             currentFontSize = Math.max(currentFontSize - 1, minFontSize);
-            editor.setOptions({
-                fontSize: currentFontSize + "px"
-            });
+            editor.setOptions({ fontSize: currentFontSize + "px" });
         }
     }
 });
 
 const fridaCompletions = [
-    // --- Runtime / Script ---
     { value: 'Script.nextTick', meta: 'function' },
     { value: 'Script.pin', meta: 'function' },
     { value: 'Script.unpin', meta: 'function' },
     { value: 'Script.bindWeak', meta: 'function' },
     { value: 'Script.unbindWeak', meta: 'function' },
-
-    // --- Process ---
     { value: 'Process.id', meta: 'number' },
     { value: 'Process.arch', meta: 'string' },
     { value: 'Process.platform', meta: 'string' },
@@ -67,12 +58,8 @@ const fridaCompletions = [
     { value: 'Process.getCurrentDir', meta: 'function' },
     { value: 'Process.getHomeDir', meta: 'function' },
     { value: 'Process.getTmpDir', meta: 'function' },
-
-    // --- Thread ---
     { value: 'Thread.backtrace', meta: 'function' },
     { value: 'Thread.sleep', meta: 'function' },
-
-    // --- Memory ---
     { value: 'Memory.alloc', meta: 'function' },
     { value: 'Memory.allocUtf8String', meta: 'function' },
     { value: 'Memory.allocAnsiString', meta: 'function' },
@@ -89,8 +76,6 @@ const fridaCompletions = [
     { value: 'Memory.scan', meta: 'function' },
     { value: 'Memory.scanSync', meta: 'function' },
     { value: 'Memory.patchCode', meta: 'function' },
-
-    // --- Module ---
     { value: 'Module.enumerateModulesSync', meta: 'function' },
     { value: 'Module.enumerateImports', meta: 'function' },
     { value: 'Module.enumerateExports', meta: 'function' },
@@ -98,50 +83,33 @@ const fridaCompletions = [
     { value: 'Module.findExportByName', meta: 'function' },
     { value: 'Module.getExportByName', meta: 'function' },
     { value: 'Module.load', meta: 'function' },
-
-    // --- ApiResolver / DebugSymbol ---
     { value: 'ApiResolver', meta: 'class' },
     { value: 'DebugSymbol.fromAddress', meta: 'function' },
-
-    // --- Native Helpers ---
     { value: 'NativePointer', meta: 'class' },
     { value: 'NativeFunction', meta: 'class' },
     { value: 'NativeCallback', meta: 'class' },
-
-    // --- CModule ---
     { value: 'CModule', meta: 'class' },
-
-    // --- Java (Android only) ---
     { value: 'Java.perform', meta: 'function' },
     { value: 'Java.use', meta: 'function' },
     { value: 'Java.choose', meta: 'function' },
     { value: 'Java.cast', meta: 'function' },
     { value: 'Java.enumerateLoadedClasses', meta: 'function' },
     { value: 'Java.deoptimizeEverything', meta: 'function' },
-
-    // --- Objective-C (iOS/macOS only) ---
     { value: 'ObjC.classes', meta: 'object' },
     { value: 'ObjC.choose', meta: 'function' },
     { value: 'ObjC.selector', meta: 'function' },
     { value: 'ObjC.enumerateLoadedClasses', meta: 'function' },
-
-    // --- Interceptor ---
     { value: 'Interceptor.attach', meta: 'function' },
     { value: 'Interceptor.replace', meta: 'function' },
     { value: 'Interceptor.revert', meta: 'function' },
-
-    // --- Stalker ---
     { value: 'Stalker.follow', meta: 'function' },
     { value: 'Stalker.unfollow', meta: 'function' },
     { value: 'Stalker.trace', meta: 'function' },
 ];
 
-
 var localCompleter = {
     getCompletions: function (editor, session, pos, prefix, callback) {
-        var completions = [
-            { value: "console", meta: "var console: Console" },
-        ];
+        var completions = [{ value: "console", meta: "var console: Console" }];
         var line = session.getLine(pos.row);
         var beforePrefix = line.slice(0, pos.column - prefix.length);
         if (beforePrefix.endsWith('console.')) {
@@ -154,16 +122,11 @@ var localCompleter = {
 };
 editor.completers.push(localCompleter);
 
-
 function formatCode() {
     const code = editor.getValue();
-    const formattedCode = js_beautify(code, {
-        indent_size: 4,
-        space_in_empty_paren: true
-    });
+    const formattedCode = js_beautify(code, { indent_size: 4, space_in_empty_paren: true });
     editor.setValue(formattedCode, 1);
 }
-
 
 editor.commands.addCommand({
     name: 'formatCode',
@@ -171,23 +134,24 @@ editor.commands.addCommand({
     exec: formatCode
 });
 
-
-function typeTextLikeHuman(text, onDone, baseDelay = 20) {
+function typeTextLikeHuman(text, onDone, baseDelay = 1) {
     let i = 0;
-    function getDelay(char) {
-        const rand = Math.floor(Math.random() * 15);
-        if (';\n,})'.includes(char)) return baseDelay + 60 + rand;
-        return baseDelay + rand;
-    }
-
+    const originalOptions = editor.getOptions();
+    editor.setOptions({
+        behavioursEnabled: false,
+        autoClosingBrackets: 'never',
+        autoClosingQuotes: 'never'
+    });
     function typeNext() {
         if (i < text.length) {
             const char = text[i++];
-            editor.insert(char);
+            const cursorPosition = editor.getCursorPosition();
+            editor.session.insert(cursorPosition, char);
             editor.clearSelection();
-            setTimeout(typeNext, getDelay(char));
-        } else if (typeof onDone === 'function') {
-            onDone();
+            setTimeout(typeNext, 1);
+        } else {
+            editor.setOptions(originalOptions);
+            if (typeof onDone === 'function') onDone();
         }
     }
     typeNext();
@@ -208,19 +172,12 @@ async function askDeepSeekStream(apiKey, question, onData) {
     const payload = {
         model: "deepseek-chat",
         messages: [
-            {
-                role: "system",
-                content: FridaPrompt
-            },
-            {
-                role: "user",
-                content: question
-            }
+            { role: "system", content: FridaPrompt },
+            { role: "user", content: question }
         ],
         temperature: 0.7,
         stream: true
     };
-
     try {
         const response = await fetch(url, {
             method: 'POST',
@@ -230,25 +187,20 @@ async function askDeepSeekStream(apiKey, question, onData) {
             },
             body: JSON.stringify(payload)
         });
-
         if (!response.ok || !response.body) {
             showMessage("请求失败，请检查配置");
             return;
         }
-
         const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
-
         while (true) {
             const { value, done } = await reader.read();
             if (done) {
                 if (typeof onData === 'function') onData(null, true);
                 break;
             }
-
             const chunk = decoder.decode(value);
             const lines = chunk.split("\n");
-
             for (const line of lines) {
                 if (line.startsWith("data: ")) {
                     const jsonStr = line.slice(6).trim();
@@ -256,36 +208,28 @@ async function askDeepSeekStream(apiKey, question, onData) {
                         if (typeof onData === 'function') onData(null, true);
                         return;
                     }
-
                     try {
                         const parsed = JSON.parse(jsonStr);
                         const token = parsed.choices?.[0]?.delta?.content;
-                        if (token && typeof onData === 'function') {
-                            onData(token, false);
-                        }
-                    } catch (err) {
-                    }
+                        if (token && typeof onData === 'function') onData(token, false);
+                    } catch (err) { }
                 }
             }
         }
-    } catch (err) {
-    }
+    } catch (err) { }
 }
 
 function showAiPrompt(initialContent = "", customHeight = 150) {
     const existing = document.getElementById("Frida-IDE-ai-prompt");
     if (existing) existing.remove();
-
     const input = document.createElement('textarea');
     input.id = "Frida-IDE-ai-prompt";
     input.placeholder = " 请输入你的想法…（Enter 发送｜Esc 关闭）";
     input.value = initialContent;
-
     input.setAttribute("spellcheck", "false");
     input.setAttribute("autocomplete", "off");
     input.setAttribute("autocorrect", "off");
     input.style.minHeight = `${customHeight}px`;
-
     input.style.position = 'absolute';
     input.style.zIndex = 9999;
     input.style.transition = 'opacity 100ms ease, transform 100ms ease';
@@ -293,18 +237,12 @@ function showAiPrompt(initialContent = "", customHeight = 150) {
     input.style.transform = 'scale(0.95)';
     input.style.pointerEvents = 'auto';
     document.body.appendChild(input);
-
     const cursorPos = editor.getCursorPosition();
     const coords = editor.renderer.textToScreenCoordinates(cursorPos.row, cursorPos.column);
-
     const inputWidth = 400;
     const inputHeight = customHeight + 20;
-    const offsetX = 0;
-    const offsetY = 30;
-
-    let left = coords.pageX + offsetX;
-    let top = coords.pageY + offsetY;
-
+    let left = coords.pageX;
+    let top = coords.pageY + 30;
     if (left + inputWidth > window.innerWidth - 40) {
         left = window.innerWidth - inputWidth - 40;
         if (left < 40) left = 40;
@@ -313,16 +251,13 @@ function showAiPrompt(initialContent = "", customHeight = 150) {
         top = coords.pageY - inputHeight - 10;
         if (top < 10) top = 10;
     }
-
     input.style.left = `${left}px`;
     input.style.top = `${top}px`;
     input.focus();
-
     requestAnimationFrame(() => {
         input.style.opacity = '1';
         input.style.transform = 'scale(1)';
     });
-
     function closePrompt() {
         input.style.opacity = '0';
         input.style.transform = 'scale(0.95)';
@@ -330,25 +265,21 @@ function showAiPrompt(initialContent = "", customHeight = 150) {
         document.removeEventListener('mousedown', handleOutsideClick);
         setTimeout(() => input.remove(), 180);
     }
-
     input.addEventListener("keydown", async function (e) {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             const q = input.value.trim();
             if (!q) return;
             closePrompt();
-
             const apiKey = localStorage.getItem('DeepseekApiKey');
             if (!apiKey || apiKey.trim() === '') {
                 showMessage("❌ 请填写 DeepSeek API Key");
                 return;
             }
-
             editor.setOptions({
                 behavioursEnabled: false,
                 wrapBehavioursEnabled: false
             });
-
             typeTextLikeHuman("// AI 正在生成，请稍候...\n", async () => {
                 const tipRow = editor.getCursorPosition().row - 1;
                 await askDeepSeekStream(apiKey, q, async (token, done) => {
@@ -356,17 +287,12 @@ function showAiPrompt(initialContent = "", customHeight = 150) {
                         const session = editor.session;
                         const lastVisibleRow = editor.renderer.getScrollBottomRow();
                         const lastRow = session.getLength() - 1;
-
                         editor.insert(token);
                         editor.clearSelection();
-
                         if (cursorPos.row >= lastRow - 1 || lastVisibleRow >= lastRow - 1) {
-                            setTimeout(() => {
-                                editor.scrollToLine(session.getLength(), true, true, () => { });
-                            }, 0);
+                            setTimeout(() => editor.scrollToLine(session.getLength(), true, true, () => { }), 0);
                         }
                     }
-
                     if (done) {
                         const line = editor.session.getLine(tipRow);
                         for (let i = line.length; i >= 0; i--) {
@@ -376,12 +302,10 @@ function showAiPrompt(initialContent = "", customHeight = 150) {
                                 end: { row: tipRow, column: i }
                             }, "");
                         }
-
                         editor.setOptions({
                             behavioursEnabled: true,
                             wrapBehavioursEnabled: true
                         });
-
                         formatCode();
                     }
                 });
@@ -390,17 +314,13 @@ function showAiPrompt(initialContent = "", customHeight = 150) {
             closePrompt();
         }
     });
-
     function handleOutsideClick(e) {
-        const inputClicked = input.contains(e.target);
-        const editorClicked = editor.container.contains(e.target);
-        if (!inputClicked && editorClicked) {
+        if (!input.contains(e.target) && editor.container.contains(e.target)) {
             closePrompt();
         }
     }
     document.addEventListener('mousedown', handleOutsideClick);
 }
-
 
 const contextMenu = document.createElement('div');
 contextMenu.id = 'Frida-IDE-contextmenu';
@@ -424,17 +344,14 @@ function addMenuItem(label, shortcut, action) {
     contextMenu.appendChild(item);
 }
 
-
 function hideContextMenu(immediate = false) {
     contextMenu.style.opacity = '0';
     contextMenu.style.transform = 'scale(0.93)';
     contextMenu.style.pointerEvents = 'none';
-
     if (immediate) {
         contextMenu.style.display = 'none';
         return Promise.resolve();
     }
-
     return new Promise(resolve => {
         setTimeout(() => {
             contextMenu.style.display = 'none';
@@ -443,17 +360,12 @@ function hideContextMenu(immediate = false) {
     });
 }
 
-
 editor.container.addEventListener('contextmenu', async (e) => {
     e.preventDefault();
     await hideContextMenu(false);
     contextMenu.innerHTML = '';
     addMenuItem('运行代码', 'Ctrl+R', () => {
-        const event = new KeyboardEvent('keydown', {
-            ctrlKey: true,
-            key: 'r'
-        });
-        document.dispatchEvent(event);
+        document.dispatchEvent(new KeyboardEvent('keydown', { ctrlKey: true, key: 'r' }));
     });
     addMenuItem('格式化代码', 'Shift+Alt+F', formatCode);
     addMenuItem('复制', 'Ctrl+C', () => document.execCommand('copy'));
@@ -463,23 +375,19 @@ editor.container.addEventListener('contextmenu', async (e) => {
     addMenuItem('清空代码', '', () => editor.setValue(''));
     addMenuItem('提问 AI', 'Alt+G', () => {
         const selected = editor.getSelectedText();
-        const content = selected.trim();
-        showAiPrompt(content, 180);
+        showAiPrompt(selected.trim(), 180);
     });
-
     const menuWidth = 200;
     const menuHeight = contextMenu.childElementCount * 30 + 10;
     const maxLeft = window.innerWidth - menuWidth - 10;
     const maxTop = window.innerHeight - menuHeight - 10;
     const left = Math.min(e.pageX, maxLeft);
     const top = Math.min(e.pageY, maxTop);
-
     contextMenu.style.left = `${left}px`;
     contextMenu.style.top = `${top}px`;
     contextMenu.style.display = 'block';
     contextMenu.style.opacity = '0';
     contextMenu.style.transform = 'scale(0.9)';
-
     requestAnimationFrame(() => {
         contextMenu.style.opacity = '1';
         contextMenu.style.transform = 'scale(1)';
@@ -499,4 +407,9 @@ document.addEventListener('keydown', (e) => {
         const selected = editor.getSelectedText();
         showAiPrompt(selected.trim() ? selected : '');
     }
+});
+
+ipcRenderer.on('write-to-editor', (event, { code, replace = true }) => {
+    if (replace) editor.setValue('', 1);
+    typeTextLikeHuman(code, () => ipcRenderer.send('write-to-editor-complete'));
 });

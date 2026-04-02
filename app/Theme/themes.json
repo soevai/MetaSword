@@ -1,0 +1,34 @@
+{
+  "themes": [
+    {
+      "id": "Origin",
+      "name": "起源",
+      "cover": "Cover/Origin.jpg",
+      "description": "默认主题，简洁优雅"
+    },
+    {
+      "id": "Fate",
+      "name": "命运",
+      "cover": "Cover/Fate.jpg",
+      "description": "命运主题，深邃神秘"
+    },
+    {
+      "id": "Ziya",
+      "name": "紫雅 · 源",
+      "cover": "Cover/Ziya.jpg",
+      "description": "紫雅主题，高贵典雅"
+    },
+    {
+      "id": "Ziya Grey",
+      "name": "紫雅 · 灰",
+      "cover": "Cover/Ziya Grey.jpg",
+      "description": "紫雅灰色版本"
+    },
+    {
+      "id": "Reimu",
+      "name": "灵梦",
+      "cover": "Cover/Reimu.jpg",
+      "description": "灵梦主题，东方风格"
+    }
+  ]
+}

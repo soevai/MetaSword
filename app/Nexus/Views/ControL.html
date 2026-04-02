@@ -3,10 +3,10 @@
 
 <!--
   @Author      发光的神 (VoxShadow)
-  @Version     1.0.7
+  @Version     1.0.8
   @Since       2023-08-31
-  @LastUpdated 2026-01-07
-  @Description 次元剑设置面板界面
+  @LastUpdated 2026-04-01
+  @Description 次元剑设置面板
   @License     MIT
 -->
 
@@ -24,67 +24,144 @@
     <div class="fa fa-times" id="close-btn"></div>
   </div>
   <div class="settings-container">
-
     <div class="settings-panel" id="settings-panel">
       <div class="setting-card">
         <h3>动画设置</h3>
         <label for="volume">动画速度 (默认：1.8)</label>
-
         <div class="media-container">
           <video class="media-item" autoplay muted loop preload="auto">
             <source src="../Assets/Videos/ControL.mp4" type="video/mp4">
           </video>
         </div>
-
-        <input type="range" id="volume" name="volume" min="0.8" max="3" step="0.1" value="1.5">
-        <div class="range-value" id="rangeValue">当前值：1.5</div>
-
+        <input type="range" id="volume" name="volume" min="0.8" max="3" step="0.1" value="1.8">
+        <div class="range-value" id="rangeValue">当前值：1.8</div>
         <label>启动动画 (默认：开启)</label>
         <button class="button" id="toggle-animation">关闭</button>
+        <hr style="margin: 15px 0; border: 1px solid #333;">
+        <h3>主题设置</h3>
+        <label>选择主题</label>
+        <div class="theme-options" id="theme-options">
+          <!-- 主题按钮将动态生成 -->
+        </div>
+        <div class="theme-preview">
+          <div class="preview-box" id="theme-preview"></div>
+        </div>
       </div>
-
       <div class="setting-card">
         <h3>AI 设置</h3>
         <label for="deepseek-Tips">DeepSeek API Key</label>
         <input type="password" id="deepseek-key" placeholder=" sk-xxxx... " class="input" maxlength="100"
           style="margin-top: 4px; ">
-
         <button class="button" id="save-deepseek-key" style="margin-top: 10px;">保存</button>
-        <button class="button" id="clear-deepseek-key" style="margin-top: 6px; margin-left: 10px;">清除</button>
+        <button class="button" id="clear-deepseek-key" style="margin-top: 6px; margin-left: 6px;">清除</button>
+        <button class="button" id="mcp-btn"
+          style="margin-top: 3px; background: linear-gradient(145deg, #6366f1, #4f46e5); display: flex; align-items: center; gap: 8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+            <line x1="6" y1="1" x2="6" y2="4"></line>
+            <line x1="10" y1="1" x2="10" y2="4"></line>
+            <line x1="14" y1="1" x2="14" y2="4"></line>
+          </svg>
+          MCP
+        </button>
       </div>
-
       <div class="setting-card">
         <h3>版本更新</h3>
-        <label for="theme">版本号 [ v1.0.7 ]</label>
+        <label for="theme" id="version-label">当前版本 [ 加载中... ]</label>
         <button class="button" id="toggle-update">检查</button>
       </div>
-      <!-- 防止半边 -->
+      <div class="setting-card">
+        <h3>关于软件</h3>
+        <label>帮助与反馈</label>
+        <div style="display: flex; gap: 5px; margin-top: 5px;">
+          <button class="button" id="website-btn"
+            style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 5px; width: auto;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+            官网
+          </button>
+          <button class="button" id="feedback-btn"
+            style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 5px; width: auto; margin-left: 6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            反馈
+          </button>
+        </div>
+        <div style="display: flex; gap: 5px;">
+          <button class="button" id="github-btn"
+            style="display: flex; align-items: center; justify-content: center; gap: 8px; width: auto;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+              <path
+                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.756-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.107.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+            </svg>
+            开源
+          </button>
+          <button class="button" id="intelligence-btn"
+            style="display: flex; align-items: center; justify-content: center; gap: 8px; width: auto; margin-left: 6px;">
+            <i class="fa fa-shield"
+              style="width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;"></i>
+            情报
+          </button>
+        </div>
+      </div>
       <p></p>
-
+    </div>
+    <div class="popup" id="popup">
+      <div class="popup-content">
+        <p id="popup-message"></p>
+        <div style="margin: 15px 0; display: none;" id="update-progress-container">
+          <div style="height: 12px; background: #333; border-radius: 6px; overflow: hidden; width: 200px;">
+            <div style="height: 100%; background: #f39c12; width: 0%; transition: width 0.3s ease;"
+              id="update-progress-bar"></div>
+          </div>
+          <div style="font-size: 14px; margin-top: 8px; text-align: center;" id="update-progress-text">0%</div>
+        </div>
+        <button id="popup-ok"></button>
+      </div>
+    </div>
+    <div class="mcp-popup" id="mcp-popup">
+      <div class="mcp-popup-content">
+        <div id="mcp-popup-content">
+          <div style="text-align: left; padding: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <h4 style="color: #f39c12; margin: 0; font-size: 16px; font-family: emoji;">MCP 配置</h4>
+              <button id="copy-btn" class="button"
+                style="background: linear-gradient(176deg, #f39c12, #de7110); margin: 0; padding: 6px 12px; font-size: 12px;">复制</button>
+            </div>
+            <div id="mcp-config-content"
+              style="background: #0c0c0c; border: 1px solid #333; border-radius: 6px; padding: 12px; font-family: 'Courier New', monospace; font-size: 13px; white-space: pre; word-break: normal; margin-bottom: 10px; font-weight: bold; overflow-x: auto;">
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-
-  <div class="popup" id="popup">
-    <div class="popup-content">
-      <p id="popup-message"></p>
-      <button id="popup-ok"></button>
-    </div>
-  </div>
-
   <div id="toast"></div>
-
   <script>
+    const { ipcRenderer } = require('electron');
+    const { exec } = require('child_process');
+    const fs = require('fs');
+    const path = require('path');
+    const xml2js = require('xml2js');
+    const https = require('https');
 
     document.getElementById('save-deepseek-key')?.addEventListener('click', () => {
       const keyInput = document.getElementById('deepseek-key');
-      if (!keyInput) return showToast("元素不存在", 'error');
-
+      if (!keyInput) return;
       const key = keyInput.value.trim();
       if (key.length === 0) {
-        showToast("不能为空");
+        keyInput.focus();
+        scrollToCard(keyInput);
         return;
       }
-
       localStorage.removeItem('DeepseekApiKey');
       localStorage.setItem('DeepseekApiKey', key);
       showToast("已保存", 'success');
@@ -94,173 +171,147 @@
       localStorage.removeItem('DeepseekApiKey');
       const keyInput = document.getElementById('deepseek-key');
       if (keyInput) keyInput.value = '';
-      showToast("已清空", 'error');
     });
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const savedKey = localStorage.getItem('DeepseekApiKey');
-      const input = document.getElementById('deepseek-key');
-      if (savedKey && input) {
-        input.value = savedKey;
+    document.getElementById('mcp-btn')?.addEventListener('click', () => {
+      let mcpPort = 2085;
+      ipcRenderer.send('get-mcp-port');
+      ipcRenderer.on('mcp-port', (event, port) => {
+        mcpPort = port;
+        showMCPPopup(mcpPort);
+      });
+      showMCPPopup(mcpPort);
+    });
+
+    function showMCPPopup(port) {
+      const config = { mcpServers: { MetaSword: { type: 'http', url: `http://127.0.0.1:${port}/mcp` } } };
+      const configText = JSON.stringify(config, null, 2);
+      function highlightJSON(json) {
+        try { JSON.parse(json); } catch (e) { return json; }
+        return json
+          .replace(/"([^"]+)"\s*:/g, '<span style="color: #f39c12;">"$1"</span>:')
+          .replace(/:\s*"([^"]+)"/g, ': <span style="color: #27ae60;">"$1"</span>')
+          .replace(/([{}\[\],])/g, '<span style="color: #95a5a6;">$1</span>');
       }
+      const highlightedConfig = highlightJSON(configText);
+      const mcpPopup = document.getElementById('mcp-popup');
+      const mcpConfigContent = document.getElementById('mcp-config-content');
+      if (mcpConfigContent) mcpConfigContent.innerHTML = highlightedConfig;
+      mcpPopup.classList.add('show');
+      const copyBtn = document.getElementById('copy-btn');
+      if (copyBtn) {
+        copyBtn.onclick = null;
+        copyBtn.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(configText);
+            showToast('已复制', 'success');
+            mcpPopup.classList.remove('show');
+          } catch (err) {
+            console.error('复制失败:', err);
+            showToast('复制失败', 'error');
+          }
+        });
+      }
+    }
+
+    document.getElementById('popup-ok')?.addEventListener('click', () => {
+      const popup = document.getElementById('popup');
+      const popupMessage = document.getElementById('popup-message');
+      const progressContainer = document.getElementById('update-progress-container');
+      if (progressContainer && progressContainer.style.display === 'block') {
+        progressContainer.style.display = 'none';
+        popup.classList.remove('show');
+        return;
+      }
+      if (window.mcpConfigText) {
+        navigator.clipboard.writeText(window.mcpConfigText).then(() => showToast('已复制', 'success')).catch(err => {
+          console.error('复制失败:', err);
+          showToast('复制失败', 'error');
+        });
+        window.mcpConfigText = null;
+      } else {
+        const message = popupMessage.textContent;
+        if (message.includes("有新版本")) {
+          exec('start "" "https://www.52tt.pro/tools/sword/"', (err) => {
+            if (err) console.error('打开链接失败:', err);
+          });
+        }
+      }
+      popup.classList.remove('show');
     });
 
     let toastTimer = null;
     function showToast(message, type = 'default') {
       const toast = document.getElementById('toast');
       if (!toast) return;
-
       toast.textContent = message;
-
       const styleMap = {
-        success: { bg: 'rgba(40, 167, 69, 0.95)', color: '#fff' },
+        success: { bg: 'rgba(1, 150, 100, 0.95)', color: '#fff' },
         error: { bg: 'rgba(220, 53, 69, 0.95)', color: '#fff' },
-        default: { bg: 'rgba(255, 255, 255, 0.95)', color: '#111' }
+        default: { bg: 'rgba(1, 150, 100, 0.9)', color: '#fff' }
       };
       const style = styleMap[type];
       toast.style.backgroundColor = style.bg;
       toast.style.color = style.color;
-
       toast.style.transition = 'none';
-      toast.style.right = '35px';
-      toast.style.bottom = '25px';
-      toast.style.transform = 'translateX(100%)';
+      toast.style.top = '25px';
+      toast.style.left = '50%';
+      toast.style.transform = 'translateX(-50%) translateY(-100%)';
       toast.offsetHeight;
-
       toast.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-      toast.style.transform = 'translateX(0%)';
+      toast.style.transform = 'translateX(-50%) translateY(0%)';
       toast.style.opacity = '1';
-
       if (toastTimer) clearTimeout(toastTimer);
       toastTimer = setTimeout(() => {
-        toast.style.transform = 'translateX(100%)';
+        toast.style.transform = 'translateX(-50%) translateY(-100%)';
         toast.style.opacity = '0';
       }, 1800);
     }
 
     try {
-      const fs = require('fs');
-      const path = require('path');
-      const xml2js = require('xml2js');
-      const { exec } = require('child_process');
-
-      document.getElementById('toggle-update')?.addEventListener('click', async () => {
-        try {
-          const timestamp = new Date().getTime();
-          const checkUrl = `https://meta.natapp4.cc/readme.txt?t=${timestamp}`;
-
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-          const response = await fetch(checkUrl, {
-            signal: controller.signal,
-            cache: 'no-cache'
-          });
-          clearTimeout(timeoutId);
-          if (!response.ok) throw new Error(`HTTP错误: ${response.status}`);
-
-          const text = await response.text();
-          const remote = text.match(/version:\s*v?([\d.]+)/i)?.[1];
-          const localLabel = document.querySelector('label[for="theme"]');
-          const local = localLabel?.innerText.match(/v?([\d.]+)/i)?.[1];
-
-          if (!remote) throw new Error('未获取到远程版本号');
-          if (!local) throw new Error('未获取到本地版本号');
-
-          if (compareVersions(remote, local) > 0) {
-            document.getElementById("popup-ok").innerText = "前往";
-            showPopup(`有新版本: v${remote}`);
-          } else {
-            document.getElementById("popup-ok").innerText = "明白";
-            showPopup('已最新版');
-          }
-        } catch (err) {
-          const errMsg = err.name === 'AbortError' ? '检测超时' : '检测失败';
-          showPopup(errMsg);
-          console.error('版本检查错误:', err);
-        }
-      });
-
-      function showPopup(message) {
-        const popup = document.getElementById('popup');
-        const popupMessage = document.getElementById('popup-message');
-        if (!popup || !popupMessage) return;
-        popupMessage.textContent = message;
-        popup.style.display = 'flex';
-      }
-
-      document.getElementById('popup-ok')?.addEventListener('click', () => {
-        const popup = document.getElementById('popup');
-        const popupMessage = document.getElementById('popup-message');
-        if (!popup || !popupMessage) return;
-
-        const message = popupMessage.textContent;
-        if (message.includes("有新版本")) {
-          exec('start "" "https://meta.natapp4.cc/tools/sword/"', (err) => {
-            if (err) console.error('打开链接失败:', err);
-          });
-        }
-        popup.style.display = 'none';
-      });
-
-      function compareVersions(v1, v2) {
-        const parts1 = v1.split('.').map(Number);
-        const parts2 = v2.split('.').map(Number);
-        const maxLen = Math.max(parts1.length, parts2.length);
-
-        for (let i = 0; i < maxLen; i++) {
-          const part1 = parts1[i] || 0;
-          const part2 = parts2[i] || 0;
-          if (part1 > part2) return 1;
-          if (part1 < part2) return -1;
-        }
-        return 0;
-      }
-
       const CONFIG_PATH = path.join(__dirname, '..', 'Views', 'config.xml');
       let configData = null;
-
-      const loadConfig = async () => {
+      const loadConfig = async (config) => {
         try {
-          if (!fs.existsSync(CONFIG_PATH)) {
-            throw new Error(`配置文件不存在: ${CONFIG_PATH}`);
+          let animationStart, animationSpeed;
+          if (config) {
+            animationStart = config.animationStart || 'enabled';
+            animationSpeed = config.animationSpeed || 1.8;
+          } else {
+            if (!fs.existsSync(CONFIG_PATH)) throw new Error(`配置文件不存在: ${CONFIG_PATH}`);
+            const data = await fs.promises.readFile(CONFIG_PATH, 'utf8');
+            configData = await xml2js.parseStringPromise(data);
+            const settings = configData.config?.settings?.[0];
+            if (!settings || !settings.tag) throw new Error('配置格式错误');
+            const animationStartTag = settings.tag.find(tag => tag.$.name === 'AnimationStart');
+            const animationSpeedTag = settings.tag.find(tag => tag.$.name === 'AnimationSpeed');
+            animationStart = animationStartTag?.$.value || 'enabled';
+            animationSpeed = animationSpeedTag?.$.value || 1.8;
           }
-          const data = await fs.promises.readFile(CONFIG_PATH, 'utf8');
-          configData = await xml2js.parseStringPromise(data);
-
-          const settings = configData.config?.settings?.[0];
-          if (!settings || !settings.tag) throw new Error('配置格式错误');
-
-          const animationStartTag = settings.tag.find(tag => tag.$.name === 'AnimationStart');
-          const animationStart = animationStartTag?.$.value || 'enabled';
           const video = document.querySelector('.media-item');
-          if (video) {
-            animationStart === 'disabled' ? video.pause() : video.play();
-          }
-
-          const animationSpeedTag = settings.tag.find(tag => tag.$.name === 'AnimationSpeed');
-          const animationSpeed = animationSpeedTag?.$.value || 1.8;
           const toggleBtn = document.getElementById('toggle-animation');
           const volumeInput = document.getElementById('volume');
           const rangeValue = document.getElementById('rangeValue');
-
+          if (video) {
+            animationStart === 'disabled' ? video.pause() : video.play();
+            video.playbackRate = animationSpeed;
+          }
           if (toggleBtn) toggleBtn.textContent = animationStart === 'enabled' ? '关闭' : '开启';
-          if (video) video.playbackRate = animationSpeed;
           if (volumeInput) volumeInput.value = animationSpeed;
           if (rangeValue) rangeValue.textContent = `当前值：${animationSpeed}`;
-
         } catch (err) {
           console.error('加载配置失败:', err);
           showToast('配置加载失败', 'error');
         }
       };
-
       const saveConfig = async (name, value) => {
         try {
-          if (!configData) throw new Error('配置未加载');
+          if (!configData) {
+            const data = await fs.promises.readFile(CONFIG_PATH, 'utf8');
+            configData = await xml2js.parseStringPromise(data);
+          }
           const settings = configData.config?.settings?.[0];
           if (!settings || !settings.tag) throw new Error('配置格式错误');
-
           const tag = settings.tag.find(tag => tag.$.name === name);
           if (tag) {
             tag.$.value = value;
@@ -275,12 +326,10 @@
           showToast('配置保存失败', 'error');
         }
       };
-
       const toggleAnimationStart = async (button) => {
         if (!button) return;
         const newStatus = button.textContent === '开启' ? 'enabled' : 'disabled';
         button.textContent = newStatus === 'enabled' ? '关闭' : '开启';
-
         const video = document.querySelector('.media-item');
         if (video) {
           if (newStatus === 'disabled') {
@@ -290,33 +339,24 @@
             video.play();
           }
         }
-
         await saveConfig('AnimationStart', newStatus);
       };
-
       document.getElementById('volume')?.addEventListener('input', (event) => {
         const input = event.target;
         const rangeValue = document.getElementById('rangeValue');
         updateRangeValue(input, rangeValue);
       });
-
       const updateRangeValue = async (input, rangeValue) => {
         if (!input || !rangeValue) return;
         const speed = input.value;
         rangeValue.textContent = `当前值：${speed}`;
-
         const video = document.querySelector('.media-item');
         if (video) video.playbackRate = speed;
-
         await saveConfig('AnimationSpeed', speed);
       };
-
-      document.getElementById('toggle-animation')?.addEventListener('click', (event) => {
-        toggleAnimationStart(event.target);
-      });
-
+      document.getElementById('toggle-animation')?.addEventListener('click', (event) => toggleAnimationStart(event.target));
+      ipcRenderer.on('config-data', (event, config) => loadConfig(config));
       loadConfig();
-
     } catch (err) {
       console.error('模块加载失败', err);
       showToast('部分功能不可用', 'error');
@@ -326,32 +366,323 @@
       if (window.close) window.close();
     });
 
-    document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById('intelligence-btn')?.addEventListener('click', () => {
+      exec('start "" "https://www.52tt.pro/tools/osint/"', (err) => {
+        if (err) console.error('打开情报链接失败:', err);
+      });
+    });
+
+    document.getElementById('website-btn')?.addEventListener('click', () => {
+      exec('start "" "https://www.52tt.pro/tools/sword/"', (err) => {
+        if (err) console.error('打开官网链接失败:', err);
+      });
+    });
+
+    document.getElementById('feedback-btn')?.addEventListener('click', () => {
+      exec('start "" "https://www.52tt.pro/index.php/2132.html"', (err) => {
+        if (err) console.error('打开社区链接失败:', err);
+      });
+    });
+
+    document.getElementById('github-btn')?.addEventListener('click', () => {
+      exec('start "" "https://github.com/soevai/MetaSword"', (err) => {
+        if (err) console.error('打开GitHub链接失败:', err);
+      });
+    });
+
+    const checkVersionUpdate = async (showTip = false) => {
+      const currentVersion = await ipcRenderer.invoke('get-version');
+      const remoteVersion = await ipcRenderer.invoke('get-latest-version');
+      try {
+        if (remoteVersion && isNewerVersion(remoteVersion, currentVersion)) {
+          const updateButton = document.getElementById('toggle-update');
+          const versionLabel = document.getElementById('version-label');
+          if (updateButton) {
+            updateButton.textContent = '更新';
+            updateButton.onclick = () => showUpdatePopup(remoteVersion);
+          }
+          if (versionLabel) {
+            versionLabel.innerHTML = `当前版本 [ v${currentVersion} ] <span class="version-update-icon">! <span class="version-tooltip">最新版本: v${remoteVersion}</span></span>`;
+            const icon = versionLabel.querySelector('.version-update-icon');
+            const tooltip = icon.querySelector('.version-tooltip');
+            if (icon && tooltip) {
+              icon.addEventListener('mouseenter', () => tooltip.classList.add('show'));
+              icon.addEventListener('mouseleave', () => tooltip.classList.remove('show'));
+            }
+          }
+        } else {
+          if (showTip) showToast('已最新版', 'success');
+          const versionLabel = document.getElementById('version-label');
+          if (versionLabel) versionLabel.textContent = `当前版本 [ v${currentVersion} ]`;
+        }
+      } catch (error) {
+        console.error('检查更新失败:', error);
+        if (showTip) showToast('检查更新失败', 'error');
+        const versionLabel = document.getElementById('version-label');
+        if (versionLabel) versionLabel.textContent = `当前版本 [ v${currentVersion} ]`;
+      }
+    };
+
+    const showUpdatePopup = (remoteVersion) => {
+      const popup = document.getElementById('popup');
+      const popupMessage = document.getElementById('popup-message');
+      const popupOk = document.getElementById('popup-ok');
+      const progressContainer = document.getElementById('update-progress-container');
+      if (popup && popupMessage && popupOk && progressContainer) {
+        popupMessage.textContent = `正在更新 ...`;
+        popupMessage.style.fontSize = '14px';
+        popupMessage.style.color = '#ccc';
+        const popupContent = popup.querySelector('.popup-content');
+        if (popupContent) {
+          popupContent.style.display = 'flex';
+          popupContent.style.flexDirection = 'column';
+          popupContent.style.alignItems = 'center';
+        }
+        popup.classList.add('show');
+        progressContainer.style.display = 'block';
+        popupOk.style.display = 'none';
+        startUpdateProgress();
+      }
+    };
+
+    const startUpdateProgress = async () => {
+      const progressContainer = document.getElementById('update-progress-container');
+      const progressBar = document.getElementById('update-progress-bar');
+      const progressText = document.getElementById('update-progress-text');
+      const popup = document.getElementById('popup');
+      const popupOk = document.getElementById('popup-ok');
+      if (progressContainer && progressBar && progressText) {
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+        try {
+          const updateUrl = 'https://www.52tt.pro/tools/sword/update/resources.zip';
+          const metaSwordRoot = path.resolve(__dirname, '..', '..', '..', '..');
+          const zipPath = path.join(metaSwordRoot, 'resources.zip');
+          const extractPath = path.join(metaSwordRoot, 'resources');
+          const resourcesDir = path.resolve(metaSwordRoot, 'resources');
+          await new Promise((resolve, reject) => {
+            https.get(updateUrl, (response) => {
+              const totalSize = parseInt(response.headers['content-length'], 10);
+              let downloadedSize = 0;
+              const fileStream = fs.createWriteStream(zipPath);
+              response.on('data', (chunk) => {
+                downloadedSize += chunk.length;
+                const progress = Math.round((downloadedSize / totalSize) * 100);
+                progressBar.style.width = `${progress}%`;
+                progressText.textContent = `${progress}%`;
+                fileStream.write(chunk);
+              });
+              response.on('end', () => { fileStream.end(); resolve(); });
+              response.on('error', (error) => { fileStream.end(); reject(error); });
+            }).on('error', (error) => reject(error));
+          });
+          await new Promise((resolve, reject) => {
+            if (!fs.existsSync(extractPath)) fs.mkdirSync(extractPath, { recursive: true });
+            const powershellCommand = `powershell -Command "Expand-Archive -Path '${zipPath}' -DestinationPath '${extractPath}' -Force"`;
+            exec(powershellCommand, { encoding: 'utf8' }, (error, stdout, stderr) => {
+              if (error) {
+                console.error('PowerShell解压失败:', error.message, stderr);
+                reject(new Error('无法解压文件，请手动下载并解压更新包'));
+              } else {
+                resolve();
+              }
+            });
+          });
+          let sourceDir = extractPath;
+          const resourcesSubDir = path.join(extractPath, 'resources');
+          if (fs.existsSync(resourcesSubDir)) sourceDir = resourcesSubDir;
+          await copyFiles(sourceDir, resourcesDir);
+          if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
+          setTimeout(() => {
+            if (popup) {
+              popup.classList.remove('show');
+              progressContainer.style.display = 'none';
+              showToast('更新完成，正在重启应用', 'success');
+              setTimeout(() => {
+                const { ipcRenderer } = require('electron');
+                ipcRenderer.send('restart-app');
+              }, 1300);
+            }
+          }, 500);
+        } catch (error) {
+          console.error('更新失败:', error);
+          showToast('更新失败: ' + error.message, 'error');
+          if (popup) {
+            popup.classList.remove('show');
+            progressContainer.style.display = 'none';
+          }
+        }
+      }
+    };
+
+    const copyFiles = async (srcDir, destDir) => {
+      if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+      const files = fs.readdirSync(srcDir);
+      for (const file of files) {
+        const srcPath = path.join(srcDir, file);
+        const destPath = path.join(destDir, file);
+        const stat = fs.lstatSync(srcPath);
+        if (stat.isDirectory()) {
+          await copyFiles(srcPath, destPath);
+        } else {
+          fs.copyFileSync(srcPath, destPath);
+        }
+      }
+    };
+
+    const isNewerVersion = (newVersion, currentVersion) => {
+      try {
+        const newParts = newVersion.split('.').map(Number);
+        const currentParts = currentVersion.split('.').map(Number);
+        const maxLength = Math.max(newParts.length, currentParts.length);
+        for (let i = 0; i < maxLength; i++) {
+          const newPart = newParts[i] || 0;
+          const currentPart = currentParts[i] || 0;
+          if (newPart > currentPart) return true;
+          if (newPart < currentPart) return false;
+        }
+        return false;
+      } catch (error) {
+        console.error('版本比较失败:', error);
+        return false;
+      }
+    };
+
+    document.getElementById('toggle-update')?.addEventListener('click', () => checkVersionUpdate(true));
+
+    function setThemePreview(preview, imagePath) {
+      preview.style.backgroundImage = `url('${imagePath}')`;
+      preview.style.backgroundSize = 'cover';
+      preview.style.backgroundPosition = 'center';
+      preview.style.backgroundRepeat = 'no-repeat';
+    }
+
+    function scrollToCard(inputElement) {
+      const card = inputElement.closest('.setting-card');
+      const panel = document.querySelector('.settings-panel');
+      if (card && panel) {
+        const cardLeft = card.offsetLeft;
+        const panelWidth = panel.offsetWidth;
+        const scrollLeft = cardLeft - (panelWidth / 2) + (card.offsetWidth / 2);
+        panel.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedKey = localStorage.getItem('DeepseekApiKey');
+      const input = document.getElementById('deepseek-key');
+      if (savedKey && input) input.value = savedKey;
+
+      Promise.all([ipcRenderer.invoke('get-version'), ipcRenderer.invoke('get-latest-version')]).then(([currentVersion, latestVersion]) => {
+        const versionLabel = document.getElementById('version-label');
+        const updateButton = document.getElementById('toggle-update');
+        if (versionLabel) {
+          if (latestVersion) {
+            versionLabel.innerHTML = `当前版本 [ v${currentVersion} ] <span class="version-update-icon">! <span class="version-tooltip">最新版本: v${latestVersion}</span></span>`;
+            const icon = versionLabel.querySelector('.version-update-icon');
+            const tooltip = icon?.querySelector('.version-tooltip');
+            if (icon && tooltip) {
+              icon.addEventListener('mouseenter', () => tooltip.classList.add('show'));
+              icon.addEventListener('mouseleave', () => tooltip.classList.remove('show'));
+            }
+            if (updateButton) {
+              updateButton.textContent = '更新';
+              updateButton.onclick = () => showUpdatePopup(latestVersion);
+            }
+          } else {
+            versionLabel.textContent = `当前版本 [ v${currentVersion} ]`;
+          }
+        }
+      });
+
+      ipcRenderer.on('version-updated', (event, version) => {
+        const versionLabel = document.getElementById('version-label');
+        if (versionLabel) versionLabel.textContent = `当前版本 [ v${version} ]`;
+      });
+
+      const themeOptions = document.getElementById('theme-options');
+      const themePreview = document.getElementById('theme-preview');
+      let themeImages = {};
+      let themeButtons = [];
+      const savedTheme = localStorage.getItem('selectedTheme') || 'Origin';
+
+      // 动态加载主题列表
+      async function loadThemes() {
+        try {
+          const themes = await ipcRenderer.invoke('get-themes');
+          if (!themes || themes.length === 0) return;
+
+          // 清空现有按钮
+          themeOptions.innerHTML = '';
+          themeImages = {};
+
+          themes.forEach(theme => {
+            // 构建主题图片路径
+            const imagePath = `../../Theme/${theme.cover}`;
+            themeImages[theme.id] = imagePath;
+
+            // 创建主题按钮
+            const button = document.createElement('button');
+            button.className = 'theme-button';
+            button.dataset.theme = theme.id;
+            button.textContent = theme.name;
+            button.title = theme.description || theme.name;
+
+            // 如果是当前选中的主题，添加active类
+            if (theme.id === savedTheme) {
+              button.classList.add('active');
+            }
+
+            // 添加点击事件
+            button.addEventListener('click', () => {
+              const selectedTheme = button.dataset.theme;
+              const imgPath = themeImages[selectedTheme];
+              if (imgPath && themePreview) {
+                setThemePreview(themePreview, imgPath);
+              }
+              themeButtons.forEach(btn => btn.classList.remove('active'));
+              button.classList.add('active');
+              localStorage.setItem('selectedTheme', selectedTheme);
+              ipcRenderer.send('switch-theme', selectedTheme);
+            });
+
+            themeOptions.appendChild(button);
+          });
+
+          themeButtons = document.querySelectorAll('.theme-button');
+
+          // 设置预览图
+          if (themePreview && themeImages[savedTheme]) {
+            setThemePreview(themePreview, themeImages[savedTheme]);
+          }
+        } catch (error) {
+          console.error('加载主题失败:', error);
+        }
+      }
+
+      // 加载主题
+      loadThemes();
+
       const settingsPanel = document.querySelector(".settings-panel");
       const settingCards = document.querySelectorAll(".setting-card");
       let isHoveringCard = false;
-
-
       settingsPanel?.addEventListener("wheel", function (event) {
         if (!isHoveringCard) {
           event.preventDefault();
           settingsPanel.scrollLeft += event.deltaY * 2;
         }
       }, { passive: false });
-
       settingCards.forEach(card => {
         card.addEventListener("mouseover", function () {
           isHoveringCard = true;
           card.classList.add("active");
         });
-
         card.addEventListener("mouseout", function (event) {
           if (!card.contains(event.relatedTarget)) {
             isHoveringCard = false;
             card.classList.remove("active");
           }
         });
-
         card.addEventListener("wheel", function (event) {
           event.stopPropagation();
         }, { passive: true });
