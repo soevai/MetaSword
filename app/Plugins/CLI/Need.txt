@@ -1,0 +1,241 @@
+D:.
+├─apktool
+├─arp-scan
+├─curl
+├─dnSpy
+│  └─bin
+│      ├─cs
+│      ├─de
+│      ├─debug
+│      ├─es
+│      ├─es-ES
+│      ├─fa
+│      ├─FileLists
+│      ├─fr
+│      ├─hu
+│      ├─it
+│      ├─LicenseInfo
+│      ├─pt-BR
+│      ├─pt-PT
+│      ├─ru
+│      ├─Themes
+│      ├─tr
+│      ├─uk
+│      ├─vi
+│      └─zh-CN
+├─exiftool
+│  └─exiftool_files
+│      └─lib
+│          ├─Archive
+│          │  └─Zip
+│          ├─auto
+│          │  ├─B
+│          │  ├─Compress
+│          │  │  └─Raw
+│          │  │      ├─Bzip2
+│          │  │      ├─Lzma
+│          │  │      └─Zlib
+│          │  ├─CryptX
+│          │  ├─Cwd
+│          │  ├─Data
+│          │  │  └─Dumper
+│          │  ├─Digest
+│          │  │  ├─MD5
+│          │  │  └─SHA
+│          │  ├─Encode
+│          │  ├─Fcntl
+│          │  ├─File
+│          │  │  └─Glob
+│          │  ├─IO
+│          │  │  └─Compress
+│          │  │      └─Brotli
+│          │  ├─List
+│          │  │  └─Util
+│          │  ├─Math
+│          │  │  └─BigInt
+│          │  │      ├─FastCalc
+│          │  │      └─GMP
+│          │  ├─MIME
+│          │  │  └─Base64
+│          │  ├─mro
+│          │  ├─PerlIO
+│          │  │  └─scalar
+│          │  ├─POSIX
+│          │  ├─re
+│          │  ├─Socket
+│          │  ├─Storable
+│          │  ├─Time
+│          │  │  ├─HiRes
+│          │  │  └─Piece
+│          │  ├─Unicode
+│          │  │  └─LineBreak
+│          │  ├─Win32
+│          │  │  ├─API
+│          │  │  └─FindFile
+│          │  └─Win32API
+│          │      └─File
+│          ├─B
+│          ├─Class
+│          ├─Compress
+│          │  └─Raw
+│          ├─CPAN
+│          ├─Data
+│          ├─Digest
+│          │  └─Perl
+│          ├─Encode
+│          │  └─MIME
+│          ├─Exporter
+│          ├─ExtUtils
+│          │  └─Command
+│          ├─File
+│          │  ├─HomeDir
+│          │  │  └─Darwin
+│          │  └─Spec
+│          ├─Image
+│          │  └─ExifTool
+│          │      ├─Charset
+│          │      └─Lang
+│          ├─IO
+│          │  ├─Compress
+│          │  │  ├─Adapter
+│          │  │  ├─Base
+│          │  │  ├─Gzip
+│          │  │  └─Zlib
+│          │  ├─Socket
+│          │  └─Uncompress
+│          │      └─Adapter
+│          ├─List
+│          ├─Math
+│          │  ├─BigFloat
+│          │  └─BigInt
+│          ├─MIME
+│          │  └─Charset
+│          ├─overload
+│          ├─PerlIO
+│          ├─Portable
+│          ├─Scalar
+│          ├─TAP
+│          │  ├─Formatter
+│          │  │  ├─Console
+│          │  │  └─File
+│          │  ├─Harness
+│          │  └─Parser
+│          │      ├─Iterator
+│          │      ├─Result
+│          │      ├─Scheduler
+│          │      ├─SourceHandler
+│          │      └─YAMLish
+│          ├─Term
+│          ├─Test
+│          │  ├─Builder
+│          │  │  ├─IO
+│          │  │  └─Tester
+│          │  ├─Tester
+│          │  └─use
+│          ├─Text
+│          ├─Tie
+│          ├─Time
+│          ├─Unicode
+│          │  └─LineBreak
+│          ├─warnings
+│          ├─Win32
+│          │  └─API
+│          └─Win32API
+│              └─File
+├─frida-tools
+├─fuff
+├─hashcat
+│  ├─bridges
+│  ├─charsets
+│  │  ├─combined
+│  │  ├─DES_special
+│  │  │  └─multiple_nodes
+│  │  ├─special
+│  │  │  ├─Castilian
+│  │  │  ├─Catalan
+│  │  │  ├─French
+│  │  │  ├─German
+│  │  │  ├─Greek
+│  │  │  ├─Italian
+│  │  │  ├─Polish
+│  │  │  ├─Portuguese
+│  │  │  ├─Russian
+│  │  │  ├─Slovak
+│  │  │  └─Spanish
+│  │  └─standard
+│  │      ├─Bulgarian
+│  │      ├─Castilian
+│  │      ├─Catalan
+│  │      ├─English
+│  │      ├─French
+│  │      ├─German
+│  │      ├─Greek
+│  │      ├─GreekPolytonic
+│  │      ├─Hungarian
+│  │      ├─Italian
+│  │      ├─Lithuanian
+│  │      ├─Polish
+│  │      ├─Portuguese
+│  │      ├─Romanian
+│  │      ├─Russian
+│  │      ├─Slovak
+│  │      └─Spanish
+│  ├─docs
+│  │  └─license_libs
+│  ├─extra
+│  │  └─tab_completion
+│  ├─kernels
+│  ├─layouts
+│  ├─masks
+│  ├─modules
+│  ├─OpenCL
+│  ├─Python
+│  ├─rules
+│  │  └─hybrid
+│  ├─Rust
+│  │  └─generic_hash
+│  │      ├─src
+│  │      └─target
+│  │          ├─release
+│  │          └─x86_64-pc-windows-gnu
+│  │              └─release
+│  ├─tools
+│  └─tunings
+├─masscan
+├─radare2
+├─sqlmap
+│  ├─data
+│  │  ├─txt
+│  │  └─xml
+│  │      ├─banner
+│  │      └─payloads
+│  └─lib
+│      ├─core
+│      │  └─__pycache__
+│      └─__pycache__
+├─strings
+├─tshark
+│  ├─diameter
+│  ├─dtds
+│  ├─extcap
+│  ├─generic
+│  ├─plugins
+│  │  └─4.4
+│  │      ├─codecs
+│  │      ├─epan
+│  │      └─wiretap
+│  ├─profiles
+│  │  ├─Bluetooth
+│  │  ├─Classic
+│  │  └─No Reassembly
+│  ├─protobuf
+│  ├─radius
+│  ├─snmp
+│  │  └─mibs
+│  ├─tls
+│  ├─tpncp
+│  └─wimaxasncp
+├─upx
+├─volatility3
+├─wafw00f
+└─ysoserial

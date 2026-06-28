@@ -1,0 +1,419 @@
+﻿<!--
+  @Author      发光的神 (VoxShadow)
+  @Version     1.0.9
+  @Since       2023-08-31
+  @LastUpdated 2026-06-28
+  @Description 次元剑 Agent 日志界面
+  @License     MIT
+-->
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tool Panel</title>
+  <style>
+    @font-face {
+      font-family: 'BalooDa2';
+      src: url('../Fonts/FontAwesome/SemiBold.ttf');
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --ms-bg-root: #0c0c0c;
+      --ms-bg-surface: #141414;
+      --ms-bg-elevated: #1a1a1a;
+      --ms-text-primary: #f4f4f5;
+      --ms-text-secondary: #a1a1aa;
+      --ms-text-muted: #71717a;
+      --ms-accent: #30c816;
+      --ms-accent-soft: rgba(48, 200, 22, 0.12);
+      --ms-bubble-border: rgba(255, 255, 255, 0.08);
+      --ms-radius-sm: 6px;
+      --ms-radius-md: 10px;
+      --ms-font-display: 'BalooDa2', system-ui, sans-serif;
+      --ms-font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --ms-font-mono: 'Consolas', 'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    body {
+      font-family: var(--ms-font-body);
+      background: transparent;
+      color: var(--ms-text-primary);
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      border-radius: 12px;
+      -webkit-app-region: no-drag;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #panel {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--ms-bg-root);
+      box-shadow: 0px 0px 3px 0px rgb(0 0 0 / 70%);
+    }
+
+    .panel-header {
+      position: relative;
+      width: 100%;
+      height: 30px;
+      background: var(--ms-bg-surface);
+      border-bottom: 1px solid var(--ms-bubble-border);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      flex-shrink: 0;
+    }
+
+    .panel-header span {
+      font-family: var(--ms-font-display);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ms-accent);
+    }
+
+    #tool-log {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 10px 12px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .empty-hint {
+      padding: 24px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--ms-text-muted);
+      font-family: var(--ms-font-display);
+    }
+
+    .tool-log-item {
+      background: var(--ms-bg-surface);
+      border: 1px solid var(--ms-bubble-border);
+      border-radius: var(--ms-radius-md);
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      animation: logIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes logIn {
+      from {
+        opacity: 0;
+        transform: scale(0.97) translateY(2px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .tool-log-item .log-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      user-select: none;
+      padding: 2px 0;
+    }
+
+    .tool-log-item .log-header:hover .log-name {
+      color: #40d826;
+    }
+
+    .tool-log-item .log-icon {
+      color: var(--ms-accent);
+      font-family: var(--ms-font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      transition: transform 0.2s ease;
+    }
+
+    .tool-log-item.collapsed .log-icon {
+      transform: rotate(90deg);
+    }
+
+    .tool-log-item .log-body {
+      overflow: hidden;
+      max-height: 600px;
+      transition: max-height 0.3s ease;
+    }
+
+    .tool-log-item.collapsed .log-body {
+      max-height: 0;
+    }
+
+    .tool-log-item .log-name {
+      color: var(--ms-accent);
+      font-weight: 600;
+      font-family: var(--ms-font-mono);
+      font-size: 12px;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tool-log-item .log-status {
+      margin-left: auto;
+      font-size: 10px;
+      color: var(--ms-text-muted);
+    }
+
+    .tool-log-item .log-input {
+      color: var(--ms-text-secondary);
+      word-break: break-all;
+      overflow-wrap: break-word;
+      max-height: 80px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      font-family: var(--ms-font-body);
+      background: rgba(0, 0, 0, 0.2);
+      padding: 6px 8px;
+      border-radius: var(--ms-radius-sm);
+      white-space: pre-wrap;
+    }
+
+    .tool-log-item .log-result {
+      font-size: 13px;
+      color: var(--ms-text-secondary);
+      max-height: 220px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: var(--ms-radius-sm);
+      font-family: var(--ms-font-body);
+    }
+
+    .tool-log-item .log-loading {
+      color: var(--ms-accent);
+      font-size: 11px;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .tool-log-item .log-loading::after {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--ms-accent);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 0.3;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3f3f46;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="panel">
+    <div class="panel-header">
+      <span>Agent Logs</span>
+    </div>
+    <div id="tool-log">
+      <p class="empty-hint">Agent Activity</p>
+    </div>
+  </div>
+  <script>
+    const { ipcRenderer } = require('electron');
+    const toolLog = document.getElementById('tool-log');
+    const emptyHint = toolLog.querySelector('.empty-hint');
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function highlightJson(text) {
+      if (!text) return '';
+      return text
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"((?:[^"\\]|\\.)*)"\s*:/g, '<span style="color:#30c816;">"$1"</span>:')
+        .replace(/: (".*?")/g, ': <span style="color:#fbbf24;">$1</span>')
+        .replace(/: (\d+\.?\d*)/g, ': <span style="color:#60a5fa;">$1</span>')
+        .replace(/: (true|false|null)/g, ': <span style="color:#c084fc;">$1</span>');
+    }
+
+    ipcRenderer.on('tool-call', (event, data) => {
+      if (emptyHint) emptyHint.style.display = 'none';
+      const item = document.createElement('div');
+      item.className = 'tool-log-item';
+      item.id = 'tool-' + data.tool_id;
+      const inputStr = data.tool_input && Object.keys(data.tool_input).length
+        ? JSON.stringify(data.tool_input, null, 2)
+        : '';
+      item.innerHTML = `
+      <div class="log-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <span class="log-icon">&gt;</span>
+        <span class="log-name">${escapeHtml(data.tool_name)}</span>
+        <span class="log-status">Running</span>
+      </div>
+      <div class="log-body">
+        ${inputStr ? `<div class="log-input">${highlightJson(inputStr)}</div>` : ''}
+        <div class="log-result" id="result-${data.tool_id}">
+          <span class="log-loading">Executing</span>
+        </div>
+      </div>
+    `;
+      toolLog.appendChild(item);
+      while (toolLog.children.length > 100) {
+        toolLog.removeChild(toolLog.firstChild);
+      }
+      toolLog.scrollTop = toolLog.scrollHeight;
+    });
+
+    ipcRenderer.on('tool-result', (event, data) => {
+      const item = document.getElementById('tool-' + data.tool_id);
+      const resultEl = document.getElementById('result-' + data.tool_id);
+      if (resultEl) {
+        const text = data.content || '';
+        const isJson = text.trim().startsWith('{') || text.trim().startsWith('[');
+        if (isJson) {
+          let formatted = text;
+          try {
+            formatted = JSON.stringify(JSON.parse(text), null, 2);
+          } catch (e1) {
+            try {
+              formatted = JSON.stringify(JSON.parse(text.replace(/\\/g, '\\\\')), null, 2);
+            } catch (e2) { }
+          }
+          resultEl.innerHTML = `<pre style="margin:0;white-space:pre-wrap;">${highlightJson(formatted)}</pre>`;
+        } else {
+          resultEl.innerHTML = escapeHtml(text);
+        }
+      }
+      if (item) {
+        const status = item.querySelector('.log-status');
+        if (status) status.textContent = 'done';
+      }
+    });
+
+    ipcRenderer.on('perm-request', (event, data) => {
+      const existing = document.getElementById('_permoverlay');
+      if (existing) existing.remove();
+      const denials = data.denials || [];
+      const toolList = denials.map((d, i) => {
+        const name = escapeHtml(d.tool_name);
+        let inputStr = '';
+        try { inputStr = JSON.stringify(JSON.parse(JSON.stringify(d.tool_input)), null, 2); } catch (_) { }
+        const inputHtml = inputStr
+          ? highlightJson(inputStr)
+          : escapeHtml(JSON.stringify(d.tool_input));
+        return '<div style="margin-bottom:10px;"><span class="_permtoggle" data-idx="' + i + '" style="color:#30c816;font-weight:600;font-family:Consolas,monospace;font-size:12px;cursor:pointer;user-select:none;">▶ ' + name + '</span><pre class="_permjson" data-idx="' + i + '" style="display:none;background:rgba(0,0,0,0.3);border-radius:6px;padding:8px 10px;font-size:13px;color:#a1a1aa;white-space:pre-wrap;overflow-wrap:break-word;word-break:break-all;margin:4px 0 0;line-height:1.5;font-family:system-ui,sans-serif;">' + inputHtml + '</pre></div>';
+      }).join('');
+      const panel = document.getElementById('panel');
+      const overlay = document.createElement('div');
+      overlay.id = '_permoverlay';
+      overlay.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:100000;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;transition:background 0.25s ease;border-radius:12px;';
+      overlay.innerHTML = '<div style="background:#1a1a1a;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:24px;width:400px;max-width:92%;box-shadow:0 16px 48px rgba(0,0,0,0.6);font-family:\'Segoe UI\',\'华文细黑\',sans-serif;opacity:0;transform:scale(0.92) translateY(16px);transition:opacity 0.25s ease,transform 0.25s cubic-bezier(0.34,1.56,0.64,1);"><h3 style="color:#f39c12;margin:0 0 12px;font-size:18px;">需要权限</h3><div style="max-height:220px;overflow-y:auto;margin:0 0 16px;">' + toolList + '</div><div style="display:flex;gap:10px;justify-content:flex-end;"><button id="_permdeny">拒绝</button><button id="_permallow">允许</button></div></div>';
+      panel.appendChild(overlay);
+      const card = overlay.querySelector('div');
+
+
+      overlay.querySelectorAll('._permtoggle').forEach(toggle => {
+        toggle.addEventListener('click', () => {
+          const idx = toggle.dataset.idx;
+          const pre = overlay.querySelector('._permjson[data-idx="' + idx + '"]');
+          if (pre.style.display === 'none') {
+            pre.style.display = '';
+            toggle.textContent = toggle.textContent.replace('▶', '▼');
+          } else {
+            pre.style.display = 'none';
+            toggle.textContent = toggle.textContent.replace('▼', '▶');
+          }
+        });
+      });
+
+      const allowBtn = overlay.querySelector('#_permallow');
+      const denyBtn = overlay.querySelector('#_permdeny');
+      [allowBtn, denyBtn].forEach(btn => {
+        btn.style.cssText = 'background:linear-gradient(145deg,#3a3a3a,#2a2a2a);border:1px solid #3f3f3f;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:bold;font-family:inherit;transition:transform 0.2s ease,box-shadow 0.2s ease;';
+        btn.addEventListener('mouseenter', () => { btn.style.transform = 'translateY(-2px)'; btn.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)'; });
+        btn.addEventListener('mouseleave', () => { btn.style.transform = ''; btn.style.boxShadow = ''; });
+        btn.addEventListener('mousedown', () => { btn.style.transform = 'translateY(1px) scale(0.97)'; btn.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.6)'; });
+        btn.addEventListener('mouseup', () => { btn.style.transform = 'translateY(-2px)'; btn.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)'; });
+      });
+
+      allowBtn.style.background = 'linear-gradient(176deg,#f39c12,#de7110)';
+      allowBtn.style.borderColor = '#de7110';
+
+      const respond = (action) => {
+        card.style.opacity = '0'; card.style.transform = 'scale(0.92) translateY(16px)';
+        overlay.style.background = 'rgba(0,0,0,0)';
+        setTimeout(() => overlay.remove(), 280);
+        ipcRenderer.send('perm-response', { action });
+      };
+      allowBtn.onclick = () => respond('allow');
+      denyBtn.onclick = () => respond('deny');
+      overlay.onclick = (e) => { if (e.target === overlay) respond('deny'); };
+      void overlay.offsetHeight;
+      requestAnimationFrame(() => {
+        overlay.style.background = 'rgba(0,0,0,0.6)';
+        card.style.opacity = '1'; card.style.transform = 'scale(1) translateY(0)';
+      });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        toolLog.querySelectorAll('.tool-log-item').forEach(el => el.remove());
+        if (emptyHint) emptyHint.style.display = '';
+      }
+    });
+
+    ipcRenderer.on('clear-tool-log', () => {
+      toolLog.querySelectorAll('.tool-log-item').forEach(el => el.remove());
+      if (emptyHint) emptyHint.style.display = '';
+    });
+  </script>
+</body>
+
+</html>

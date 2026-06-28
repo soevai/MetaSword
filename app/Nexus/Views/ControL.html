@@ -3,9 +3,9 @@
 
 <!--
   @Author      发光的神 (VoxShadow)
-  @Version     1.0.8
+  @Version     1.0.9
   @Since       2023-08-31
-  @LastUpdated 2026-04-01
+  @LastUpdated 2026-06-28
   @Description 次元剑设置面板
   @License     MIT
 -->
@@ -23,7 +23,7 @@
     <div class="stitle">⌥</div>
     <div class="fa fa-times" id="close-btn"></div>
   </div>
-  <div class="settings-container">
+  <div class="settings-container settings-panel-container">
     <div class="settings-panel" id="settings-panel">
       <div class="setting-card">
         <h3>动画设置</h3>
@@ -41,35 +41,15 @@
         <h3>主题设置</h3>
         <label>选择主题</label>
         <div class="theme-options" id="theme-options">
-          <!-- 主题按钮将动态生成 -->
+
         </div>
         <div class="theme-preview">
           <div class="preview-box" id="theme-preview"></div>
         </div>
       </div>
       <div class="setting-card">
-        <h3>AI 设置</h3>
-        <label for="deepseek-Tips">DeepSeek API Key</label>
-        <input type="password" id="deepseek-key" placeholder=" sk-xxxx... " class="input" maxlength="100"
-          style="margin-top: 4px; ">
-        <button class="button" id="save-deepseek-key" style="margin-top: 10px;">保存</button>
-        <button class="button" id="clear-deepseek-key" style="margin-top: 6px; margin-left: 6px;">清除</button>
-        <button class="button" id="mcp-btn"
-          style="margin-top: 3px; background: linear-gradient(145deg, #6366f1, #4f46e5); display: flex; align-items: center; gap: 8px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-            <line x1="6" y1="1" x2="6" y2="4"></line>
-            <line x1="10" y1="1" x2="10" y2="4"></line>
-            <line x1="14" y1="1" x2="14" y2="4"></line>
-          </svg>
-          MCP
-        </button>
-      </div>
-      <div class="setting-card">
         <h3>版本更新</h3>
-        <label for="theme" id="version-label">当前版本 [ 加载中... ]</label>
+        <label for="theme" id="version-label">当前版本</label>
         <button class="button" id="toggle-update">检查</button>
       </div>
       <div class="setting-card">
@@ -117,13 +97,6 @@
     <div class="popup" id="popup">
       <div class="popup-content">
         <p id="popup-message"></p>
-        <div style="margin: 15px 0; display: none;" id="update-progress-container">
-          <div style="height: 12px; background: #333; border-radius: 6px; overflow: hidden; width: 200px;">
-            <div style="height: 100%; background: #f39c12; width: 0%; transition: width 0.3s ease;"
-              id="update-progress-bar"></div>
-          </div>
-          <div style="font-size: 14px; margin-top: 8px; text-align: center;" id="update-progress-text">0%</div>
-        </div>
         <button id="popup-ok"></button>
       </div>
     </div>
@@ -151,27 +124,6 @@
     const fs = require('fs');
     const path = require('path');
     const xml2js = require('xml2js');
-    const https = require('https');
-
-    document.getElementById('save-deepseek-key')?.addEventListener('click', () => {
-      const keyInput = document.getElementById('deepseek-key');
-      if (!keyInput) return;
-      const key = keyInput.value.trim();
-      if (key.length === 0) {
-        keyInput.focus();
-        scrollToCard(keyInput);
-        return;
-      }
-      localStorage.removeItem('DeepseekApiKey');
-      localStorage.setItem('DeepseekApiKey', key);
-      showToast("已保存", 'success');
-    });
-
-    document.getElementById('clear-deepseek-key')?.addEventListener('click', () => {
-      localStorage.removeItem('DeepseekApiKey');
-      const keyInput = document.getElementById('deepseek-key');
-      if (keyInput) keyInput.value = '';
-    });
 
     document.getElementById('mcp-btn')?.addEventListener('click', () => {
       let mcpPort = 2085;
@@ -216,26 +168,12 @@
 
     document.getElementById('popup-ok')?.addEventListener('click', () => {
       const popup = document.getElementById('popup');
-      const popupMessage = document.getElementById('popup-message');
-      const progressContainer = document.getElementById('update-progress-container');
-      if (progressContainer && progressContainer.style.display === 'block') {
-        progressContainer.style.display = 'none';
-        popup.classList.remove('show');
-        return;
-      }
       if (window.mcpConfigText) {
         navigator.clipboard.writeText(window.mcpConfigText).then(() => showToast('已复制', 'success')).catch(err => {
           console.error('复制失败:', err);
           showToast('复制失败', 'error');
         });
         window.mcpConfigText = null;
-      } else {
-        const message = popupMessage.textContent;
-        if (message.includes("有新版本")) {
-          exec('start "" "https://www.52tt.pro/tools/sword/"', (err) => {
-            if (err) console.error('打开链接失败:', err);
-          });
-        }
       }
       popup.classList.remove('show');
     });
@@ -269,7 +207,7 @@
     }
 
     try {
-      const CONFIG_PATH = path.join(__dirname, '..', 'Views', 'config.xml');
+      const CONFIG_PATH = path.join(__dirname, '..', 'Views', 'config', 'Config.xml');
       let configData = null;
       const loadConfig = async (config) => {
         try {
@@ -301,29 +239,16 @@
           if (rangeValue) rangeValue.textContent = `当前值：${animationSpeed}`;
         } catch (err) {
           console.error('加载配置失败:', err);
-          showToast('配置加载失败', 'error');
+          showToast('加载失败', 'error');
         }
       };
       const saveConfig = async (name, value) => {
         try {
-          if (!configData) {
-            const data = await fs.promises.readFile(CONFIG_PATH, 'utf8');
-            configData = await xml2js.parseStringPromise(data);
-          }
-          const settings = configData.config?.settings?.[0];
-          if (!settings || !settings.tag) throw new Error('配置格式错误');
-          const tag = settings.tag.find(tag => tag.$.name === name);
-          if (tag) {
-            tag.$.value = value;
-            const builder = new xml2js.Builder();
-            const xmlData = builder.buildObject(configData);
-            await fs.promises.writeFile(CONFIG_PATH, xmlData, 'utf8');
-          } else {
-            throw new Error(`未找到配置项: ${name}`);
-          }
+          const result = await ipcRenderer.invoke('save-config', name, String(value));
+          if (!result && result !== undefined) throw new Error('保存失败');
         } catch (err) {
           console.error('保存配置失败:', err);
-          showToast('配置保存失败', 'error');
+          showToast('保存失败', 'error');
         }
       };
       const toggleAnimationStart = async (button) => {
@@ -359,7 +284,7 @@
       loadConfig();
     } catch (err) {
       console.error('模块加载失败', err);
-      showToast('部分功能不可用', 'error');
+      showToast('功能受限', 'error');
     }
 
     document.getElementById('close-btn')?.addEventListener('click', () => {
@@ -398,8 +323,12 @@
           const updateButton = document.getElementById('toggle-update');
           const versionLabel = document.getElementById('version-label');
           if (updateButton) {
-            updateButton.textContent = '更新';
-            updateButton.onclick = () => showUpdatePopup(remoteVersion);
+            updateButton.textContent = '前往';
+            updateButton.onclick = () => {
+              exec('start "" "https://www.52tt.pro/tools/sword/"', (err) => {
+                if (err) console.error('打开链接失败:', err);
+              });
+            };
           }
           if (versionLabel) {
             versionLabel.innerHTML = `当前版本 [ v${currentVersion} ] <span class="version-update-icon">! <span class="version-tooltip">最新版本: v${remoteVersion}</span></span>`;
@@ -411,122 +340,15 @@
             }
           }
         } else {
-          if (showTip) showToast('已最新版', 'success');
+          if (showTip) showToast('已是最新', 'success');
           const versionLabel = document.getElementById('version-label');
           if (versionLabel) versionLabel.textContent = `当前版本 [ v${currentVersion} ]`;
         }
       } catch (error) {
         console.error('检查更新失败:', error);
-        if (showTip) showToast('检查更新失败', 'error');
+        if (showTip) showToast('检查失败', 'error');
         const versionLabel = document.getElementById('version-label');
         if (versionLabel) versionLabel.textContent = `当前版本 [ v${currentVersion} ]`;
-      }
-    };
-
-    const showUpdatePopup = (remoteVersion) => {
-      const popup = document.getElementById('popup');
-      const popupMessage = document.getElementById('popup-message');
-      const popupOk = document.getElementById('popup-ok');
-      const progressContainer = document.getElementById('update-progress-container');
-      if (popup && popupMessage && popupOk && progressContainer) {
-        popupMessage.textContent = `正在更新 ...`;
-        popupMessage.style.fontSize = '14px';
-        popupMessage.style.color = '#ccc';
-        const popupContent = popup.querySelector('.popup-content');
-        if (popupContent) {
-          popupContent.style.display = 'flex';
-          popupContent.style.flexDirection = 'column';
-          popupContent.style.alignItems = 'center';
-        }
-        popup.classList.add('show');
-        progressContainer.style.display = 'block';
-        popupOk.style.display = 'none';
-        startUpdateProgress();
-      }
-    };
-
-    const startUpdateProgress = async () => {
-      const progressContainer = document.getElementById('update-progress-container');
-      const progressBar = document.getElementById('update-progress-bar');
-      const progressText = document.getElementById('update-progress-text');
-      const popup = document.getElementById('popup');
-      const popupOk = document.getElementById('popup-ok');
-      if (progressContainer && progressBar && progressText) {
-        progressBar.style.width = '0%';
-        progressText.textContent = '0%';
-        try {
-          const updateUrl = 'https://www.52tt.pro/tools/sword/update/resources.zip';
-          const metaSwordRoot = path.resolve(__dirname, '..', '..', '..', '..');
-          const zipPath = path.join(metaSwordRoot, 'resources.zip');
-          const extractPath = path.join(metaSwordRoot, 'resources');
-          const resourcesDir = path.resolve(metaSwordRoot, 'resources');
-          await new Promise((resolve, reject) => {
-            https.get(updateUrl, (response) => {
-              const totalSize = parseInt(response.headers['content-length'], 10);
-              let downloadedSize = 0;
-              const fileStream = fs.createWriteStream(zipPath);
-              response.on('data', (chunk) => {
-                downloadedSize += chunk.length;
-                const progress = Math.round((downloadedSize / totalSize) * 100);
-                progressBar.style.width = `${progress}%`;
-                progressText.textContent = `${progress}%`;
-                fileStream.write(chunk);
-              });
-              response.on('end', () => { fileStream.end(); resolve(); });
-              response.on('error', (error) => { fileStream.end(); reject(error); });
-            }).on('error', (error) => reject(error));
-          });
-          await new Promise((resolve, reject) => {
-            if (!fs.existsSync(extractPath)) fs.mkdirSync(extractPath, { recursive: true });
-            const powershellCommand = `powershell -Command "Expand-Archive -Path '${zipPath}' -DestinationPath '${extractPath}' -Force"`;
-            exec(powershellCommand, { encoding: 'utf8' }, (error, stdout, stderr) => {
-              if (error) {
-                console.error('PowerShell解压失败:', error.message, stderr);
-                reject(new Error('无法解压文件，请手动下载并解压更新包'));
-              } else {
-                resolve();
-              }
-            });
-          });
-          let sourceDir = extractPath;
-          const resourcesSubDir = path.join(extractPath, 'resources');
-          if (fs.existsSync(resourcesSubDir)) sourceDir = resourcesSubDir;
-          await copyFiles(sourceDir, resourcesDir);
-          if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
-          setTimeout(() => {
-            if (popup) {
-              popup.classList.remove('show');
-              progressContainer.style.display = 'none';
-              showToast('更新完成，正在重启应用', 'success');
-              setTimeout(() => {
-                const { ipcRenderer } = require('electron');
-                ipcRenderer.send('restart-app');
-              }, 1300);
-            }
-          }, 500);
-        } catch (error) {
-          console.error('更新失败:', error);
-          showToast('更新失败: ' + error.message, 'error');
-          if (popup) {
-            popup.classList.remove('show');
-            progressContainer.style.display = 'none';
-          }
-        }
-      }
-    };
-
-    const copyFiles = async (srcDir, destDir) => {
-      if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-      const files = fs.readdirSync(srcDir);
-      for (const file of files) {
-        const srcPath = path.join(srcDir, file);
-        const destPath = path.join(destDir, file);
-        const stat = fs.lstatSync(srcPath);
-        if (stat.isDirectory()) {
-          await copyFiles(srcPath, destPath);
-        } else {
-          fs.copyFileSync(srcPath, destPath);
-        }
       }
     };
 
@@ -569,10 +391,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      const savedKey = localStorage.getItem('DeepseekApiKey');
-      const input = document.getElementById('deepseek-key');
-      if (savedKey && input) input.value = savedKey;
-
       Promise.all([ipcRenderer.invoke('get-version'), ipcRenderer.invoke('get-latest-version')]).then(([currentVersion, latestVersion]) => {
         const versionLabel = document.getElementById('version-label');
         const updateButton = document.getElementById('toggle-update');
@@ -586,8 +404,12 @@
               icon.addEventListener('mouseleave', () => tooltip.classList.remove('show'));
             }
             if (updateButton) {
-              updateButton.textContent = '更新';
-              updateButton.onclick = () => showUpdatePopup(latestVersion);
+              updateButton.textContent = '前往';
+              updateButton.onclick = () => {
+                exec('start "" "https://www.52tt.pro/tools/sword/"', (err) => {
+                  if (err) console.error('打开链接失败:', err);
+                });
+              };
             }
           } else {
             versionLabel.textContent = `当前版本 [ v${currentVersion} ]`;
@@ -606,34 +428,27 @@
       let themeButtons = [];
       const savedTheme = localStorage.getItem('selectedTheme') || 'Origin';
 
-      // 动态加载主题列表
       async function loadThemes() {
         try {
           const themes = await ipcRenderer.invoke('get-themes');
           if (!themes || themes.length === 0) return;
-
-          // 清空现有按钮
           themeOptions.innerHTML = '';
           themeImages = {};
 
           themes.forEach(theme => {
-            // 构建主题图片路径
             const imagePath = `../../Theme/${theme.cover}`;
             themeImages[theme.id] = imagePath;
 
-            // 创建主题按钮
             const button = document.createElement('button');
             button.className = 'theme-button';
             button.dataset.theme = theme.id;
             button.textContent = theme.name;
             button.title = theme.description || theme.name;
 
-            // 如果是当前选中的主题，添加active类
             if (theme.id === savedTheme) {
               button.classList.add('active');
             }
 
-            // 添加点击事件
             button.addEventListener('click', () => {
               const selectedTheme = button.dataset.theme;
               const imgPath = themeImages[selectedTheme];
@@ -651,7 +466,6 @@
 
           themeButtons = document.querySelectorAll('.theme-button');
 
-          // 设置预览图
           if (themePreview && themeImages[savedTheme]) {
             setThemePreview(themePreview, themeImages[savedTheme]);
           }
@@ -660,7 +474,6 @@
         }
       }
 
-      // 加载主题
       loadThemes();
 
       const settingsPanel = document.querySelector(".settings-panel");

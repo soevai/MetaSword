@@ -58,9 +58,10 @@ body {
 .settings-panel {
     display: flex;
     overflow-x: auto;
-    padding: 23px 0;
+    padding: 23px 0 30px 0;
     gap: 13px;
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(1 150 100) #333;
     transition: all 0.3s ease;
     scroll-behavior: smooth;
 }
@@ -83,7 +84,8 @@ body {
     background: #222;
     border-radius: 10px;
     padding: 20px;
-    min-width: 233px;
+    flex: 0 0 auto;
+    width: 235px;
     height: 258px;
     overflow: hidden;
     transition: all 0.1s;

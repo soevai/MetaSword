@@ -1,0 +1,45 @@
+D:.
+├─.claude
+│  ├─projects
+│  ├─sessions
+│  └─skills
+│      ├─audit-skills
+│      │  ├─references
+│      │  └─scripts
+│      ├─ctf-ai-ml
+│      ├─ctf-crypto
+│      ├─ctf-forensics
+│      ├─ctf-malware
+│      ├─ctf-misc
+│      ├─ctf-osint
+│      ├─ctf-pwn
+│      ├─ctf-reverse
+│      ├─ctf-web
+│      ├─ctf-writeup
+│      ├─dotnet-audit-pipeline
+│      │  └─references
+│      ├─dotnet-auth-audit
+│      │  └─references
+│      ├─dotnet-file-read-audit
+│      │  └─references
+│      ├─dotnet-file-upload-audit
+│      │  └─references
+│      ├─dotnet-route-mapper
+│      │  └─references
+│      ├─dotnet-route-tracer
+│      │  └─references
+│      ├─dotnet-shared
+│      ├─dotnet-sql-audit
+│      │  └─references
+│      ├─dotnet-vuln-scanner
+│      │  ├─references
+│      │  └─scripts
+│      ├─dotnet-xxe-audit
+│      │  └─references
+│      ├─scripts
+│      ├─SecSkills
+│      │  └─references
+│      └─solve-challenge
+├─AppData
+│  └─Roaming
+└─Cache

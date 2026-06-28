@@ -1,8 +1,8 @@
 /**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.8
+ * @Version     1.0.9
  * @Since       2023-08-31
- * @LastUpdated 2026-04-01
+ * @LastUpdated 2026-06-28
  * @Description 负责 Frida 编辑器逻辑
  * @License     MIT
  */
@@ -134,7 +134,7 @@ editor.commands.addCommand({
     exec: formatCode
 });
 
-function typeTextLikeHuman(text, onDone, baseDelay = 1) {
+function typeTextLikeHuman(text, onDone) {
     let i = 0;
     const originalOptions = editor.getOptions();
     editor.setOptions({
@@ -144,9 +144,11 @@ function typeTextLikeHuman(text, onDone, baseDelay = 1) {
     });
     function typeNext() {
         if (i < text.length) {
+            if (!aiAbortController) { return; }
             const char = text[i++];
-            const cursorPosition = editor.getCursorPosition();
-            editor.session.insert(cursorPosition, char);
+            const session = editor.session;
+            const lastRow = session.getLength() - 1;
+            editor.session.insert({ row: lastRow, column: session.getLine(lastRow).length }, char);
             editor.clearSelection();
             setTimeout(typeNext, 1);
         } else {
@@ -167,6 +169,30 @@ const FridaPrompt = `
     Strictly return raw JavaScript code only.
 `;
 
+let aiAbortController = null;
+
+const cancelHint = document.createElement('div');
+cancelHint.id = 'Frida-IDE-cancel-hint';
+cancelHint.textContent = '按 Esc 取消';
+cancelHint.style.cssText = `
+    position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+    background: #1a1a1a; color: #d4d4d8; padding: 12px 24px;
+    border-radius: 12px; font-size: 13px; font-family: system-ui, sans-serif;
+    z-index: 10001; display: none; pointer-events: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+`;
+document.body.appendChild(cancelHint);
+
+function startAiGeneration() {
+    aiAbortController = new AbortController();
+    cancelHint.style.display = 'block';
+}
+
+function stopAiGeneration() {
+    aiAbortController = null;
+    cancelHint.style.display = 'none';
+}
+
 async function askDeepSeekStream(apiKey, question, onData) {
     const url = 'https://api.deepseek.com/chat/completions';
     const payload = {
@@ -185,10 +211,13 @@ async function askDeepSeekStream(apiKey, question, onData) {
                 'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: aiAbortController?.signal
         });
         if (!response.ok || !response.body) {
             showMessage("请求失败，请检查配置");
+            editor.setReadOnly(false);
+            stopAiGeneration();
             return;
         }
         const reader = response.body.getReader();
@@ -216,7 +245,10 @@ async function askDeepSeekStream(apiKey, question, onData) {
                 }
             }
         }
-    } catch (err) { }
+    } catch (err) {
+        editor.setReadOnly(false);
+        stopAiGeneration();
+    }
 }
 
 function showAiPrompt(initialContent = "", customHeight = 150) {
@@ -273,9 +305,11 @@ function showAiPrompt(initialContent = "", customHeight = 150) {
             closePrompt();
             const apiKey = localStorage.getItem('DeepseekApiKey');
             if (!apiKey || apiKey.trim() === '') {
-                showMessage("❌ 请填写 DeepSeek API Key");
+                showMessage("❌ 请填写 Key");
                 return;
             }
+            editor.setReadOnly(true);
+            startAiGeneration();
             editor.setOptions({
                 behavioursEnabled: false,
                 wrapBehavioursEnabled: false
@@ -287,6 +321,7 @@ function showAiPrompt(initialContent = "", customHeight = 150) {
                         const session = editor.session;
                         const lastVisibleRow = editor.renderer.getScrollBottomRow();
                         const lastRow = session.getLength() - 1;
+                        editor.selection.moveTo(lastRow, session.getLine(lastRow).length);
                         editor.insert(token);
                         editor.clearSelection();
                         if (cursorPos.row >= lastRow - 1 || lastVisibleRow >= lastRow - 1) {
@@ -306,6 +341,8 @@ function showAiPrompt(initialContent = "", customHeight = 150) {
                             behavioursEnabled: true,
                             wrapBehavioursEnabled: true
                         });
+                        editor.setReadOnly(false);
+                        stopAiGeneration();
                         formatCode();
                     }
                 });
@@ -401,7 +438,23 @@ document.addEventListener('click', (e) => {
     }
 });
 
+let isMcpWriting = false;
+
 document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && aiAbortController) {
+        e.preventDefault();
+        aiAbortController.abort();
+        if (isMcpWriting) {
+            isMcpWriting = false;
+            ipcRenderer.send('frida-stop-ai');
+            ipcRenderer.send('write-to-editor-complete', { cancelled: true });
+        }
+        stopAiGeneration();
+        editor.setOptions({ behavioursEnabled: true, wrapBehavioursEnabled: true });
+        editor.setReadOnly(false);
+        showMessage("已取消");
+        return;
+    }
     if (e.altKey && e.code === 'KeyG') {
         e.preventDefault();
         const selected = editor.getSelectedText();
@@ -410,6 +463,14 @@ document.addEventListener('keydown', (e) => {
 });
 
 ipcRenderer.on('write-to-editor', (event, { code, replace = true }) => {
+    editor.setReadOnly(true);
+    startAiGeneration();
+    isMcpWriting = true;
     if (replace) editor.setValue('', 1);
-    typeTextLikeHuman(code, () => ipcRenderer.send('write-to-editor-complete'));
+    typeTextLikeHuman(code, () => {
+        editor.setReadOnly(false);
+        stopAiGeneration();
+        isMcpWriting = false;
+        ipcRenderer.send('write-to-editor-complete', { cancelled: false });
+    });
 });

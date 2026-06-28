@@ -1,8 +1,8 @@
 /**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.8
+ * @Version     1.0.9
  * @Since       2026-03-15
- * @LastUpdated 2026-04-01
+ * @LastUpdated 2026-06-28
  * @Description MCP HTTP 服务
  * @License     MIT
  */
@@ -11,7 +11,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { spawn } = require('child_process');
+const { spawn, exec } = require('child_process');
 const { ipcMain } = require('electron');
 
 function startMCPHttpServer(windows, createFridaIDEWindow) {
@@ -86,7 +86,7 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
       xmlContent = xmlContent.replace('___TOOL1_PLACEHOLDER___', tool2Block);
       fs.writeFileSync(toolsListPath, xmlContent, 'utf-8');
       notifyToolsUpdated();
-      return { content: [{ type: 'text', text: `成功交换工具位置："${tool1}" 和 "${tool2}" 的位置已互换` }] };
+      return { content: [{ type: 'text', text: `已交换 "${tool1}" ↔ "${tool2}"` }] };
     } catch (error) {
       return { content: [{ type: 'text', text: `交换工具位置失败：${error.message}` }], isError: true };
     }
@@ -129,7 +129,7 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
         xmlContent = xmlContent.replace(categoryMatch[0], categoryStart + newCategoryContent + categoryEnd);
         fs.writeFileSync(toolsListPath, xmlContent, 'utf-8');
         notifyToolsUpdated();
-        return { content: [{ type: 'text', text: `成功将 "${toolName}" 移动到 "${targetCategory}" 分类的第 ${Math.min(insertIndex + 1, items.length + 1)} 个位置` }] };
+        return { content: [{ type: 'text', text: `已移动 "${toolName}" → ${targetCategory || targetCategoryName} #${targetPosition}` }] };
       } else {
         const allCategoriesRegex = /<category[^>]*name="([^"]+)"[^>]*>([\s\S]*?)<\/category>/g;
         let categoryMatch, targetCategoryName = null;
@@ -158,7 +158,7 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
           xmlContent = xmlContent.replace(catMatch[0], categoryStart + newCategoryContent + categoryEnd);
           fs.writeFileSync(toolsListPath, xmlContent, 'utf-8');
           notifyToolsUpdated();
-          return { content: [{ type: 'text', text: `成功将 "${toolName}" 移动到 "${targetCategoryName}" 分类的第 ${insertIndex + 1} 个位置` }] };
+          return { content: [{ type: 'text', text: `已移动 "${toolName}" → ${targetCategoryName} #${insertIndex + 1}` }] };
         }
       }
     } catch (error) {
@@ -171,7 +171,7 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
     try {
       if (!fs.existsSync(filePath)) throw new Error(`文件不存在: ${filePath}`);
       const content = fs.readFileSync(filePath, 'utf-8');
-      sendResponse(res, request, { content: [{ type: 'text', text: `文件读取成功：${filePath}\n\n${content}` }] });
+      sendResponse(res, request, { content: [{ type: 'text', text: content }] });
     } catch (error) {
       console.error('读取文件失败:', error);
       sendErrorResponse(res, request, `读取文件失败：${error.message}`);
@@ -188,7 +188,7 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
     ps.on('close', (code) => {
       if (!responseSent) {
         responseSent = true;
-        sendResponse(res, request, { content: [{ type: 'text', text: `PowerShell命令执行结果：\n${stdout}\n${stderr ? '错误：\n' + stderr : ''}` }] });
+        sendResponse(res, request, { content: [{ type: 'text', text: stdout + (stderr ? '\n' + stderr : '') }] });
       }
     });
     ps.on('error', (error) => {
@@ -202,7 +202,7 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
       if (!responseSent) {
         responseSent = true;
         ps.kill('SIGTERM');
-        sendResponse(res, request, { content: [{ type: 'text', text: `PowerShell命令执行超时（${timeout}毫秒），已终止执行。\n当前输出：\n${stdout}\n${stderr ? '错误：\n' + stderr : ''}` }] });
+        sendResponse(res, request, { content: [{ type: 'text', text: `超时 ${timeout}ms\n${stdout}${stderr ? '\n' + stderr : ''}` }] });
       }
     }, timeout);
   }
@@ -232,7 +232,7 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
       const dirPath = path.dirname(filePath);
       if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
       fs.writeFileSync(filePath, content, 'utf-8');
-      sendResponse(res, request, { content: [{ type: 'text', text: `文件写入成功：${filePath}` }] });
+      sendResponse(res, request, { content: [{ type: 'text', text: `已写入 ${filePath}` }] });
     } catch (error) {
       console.error('写入文件失败:', error);
       sendErrorResponse(res, request, `写入文件失败：${error.message}`);
@@ -266,7 +266,7 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
         if (!responseSent) {
           responseSent = true;
           if (!useScriptPath && fs.existsSync(tempScriptPath)) fs.unlinkSync(tempScriptPath);
-          sendResponse(res, request, { content: [{ type: 'text', text: `Python脚本执行结果：\n${stdout}\n${stderr ? '错误：\n' + stderr : ''}` }] });
+          sendResponse(res, request, { content: [{ type: 'text', text: stdout + (stderr ? '\n' + stderr : '') }] });
         }
       });
       ps.on('error', (error) => {
@@ -282,12 +282,174 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
           responseSent = true;
           ps.kill('SIGTERM');
           if (!useScriptPath && fs.existsSync(tempScriptPath)) fs.unlinkSync(tempScriptPath);
-          sendResponse(res, request, { content: [{ type: 'text', text: `Python脚本执行超时（90000毫秒=1分半钟），已终止执行。\n当前输出：\n${stdout}\n${stderr ? '错误：\n' + stderr : ''}` }] });
+          sendResponse(res, request, { content: [{ type: 'text', text: `超时 90s\n${stdout}${stderr ? '\n' + stderr : ''}` }] });
         }
       }, 90000);
     } catch (error) {
       console.error('运行Python脚本失败:', error);
       sendErrorResponse(res, request, `运行Python脚本失败：${error.message}`);
+    }
+  }
+
+  function handleRunJava(res, request, args) {
+    const { script, scriptPath, jarArgs = [] } = args;
+    try {
+      const toolsListPath = path.join(__dirname, '..', '..', '..', 'Tools', 'ToolsList.xml');
+      const xmlContent = fs.readFileSync(toolsListPath, 'utf-8');
+      const tools = parseXMLSimple(xmlContent);
+      const javaTool = tools.find(tool => tool.category === 'Language' && tool.name.toLowerCase().includes('java'));
+      if (!javaTool || !javaTool.path) throw new Error('未找到Java环境');
+      let javaPath = javaTool.path;
+      if (!/^[a-zA-Z]:\\/.test(javaTool.path)) javaPath = path.join(__dirname, '..', '..', '..', javaTool.path);
+      if (fs.statSync(javaPath).isDirectory()) {
+        javaPath = path.join(javaPath, 'java.exe');
+        if (!fs.existsSync(javaPath)) throw new Error(`Java可执行文件不存在: ${javaPath}`);
+      }
+      let tempScriptPath;
+      if (!scriptPath) {
+        const classMatch = (script || '').match(/class\s+(\w+)/);
+        const className = classMatch ? classMatch[1] : ('Java_' + Date.now());
+        tempScriptPath = path.join(os.tmpdir(), className + '.java');
+      }
+      let resolvedPath = scriptPath;
+      if (scriptPath && !path.isAbsolute(scriptPath)) {
+        resolvedPath = path.join(__dirname, '..', 'Plugins', 'claude', scriptPath);
+      }
+      const useScriptPath = resolvedPath && fs.existsSync(resolvedPath);
+      const srcFile = useScriptPath ? resolvedPath : tempScriptPath;
+      if (!useScriptPath) {
+        if (!script) throw new Error('请提供 Java 代码或 jar 路径');
+        fs.writeFileSync(tempScriptPath, script);
+      }
+      const isJar = srcFile.toLowerCase().endsWith('.jar');
+      if (isJar) {
+        const spawnArgs = ['-jar', srcFile, ...jarArgs];
+        runProcess(javaPath, spawnArgs, srcFile, !useScriptPath, tempScriptPath, res, request);
+      } else {
+        // .java 源码：先 javac 编译再 java 运行
+        const javacPath = javaPath.replace(/java\.exe$/i, 'javac.exe');
+        if (!fs.existsSync(javacPath)) throw new Error('javac.exe 不存在，请安装 JDK');
+        const classDir = path.dirname(srcFile);
+        const className = path.basename(srcFile, '.java');
+        const compile = spawn(javacPath, ['-encoding', 'utf-8', srcFile, '-d', classDir], { encoding: 'utf-8' });
+        let compileErr = '';
+        compile.stderr.on('data', (data) => { compileErr += data; });
+        compile.on('close', (code) => {
+          if (code !== 0) {
+            if (!useScriptPath && fs.existsSync(tempScriptPath)) fs.unlinkSync(tempScriptPath);
+            sendResponse(res, request, { content: [{ type: 'text', text: '编译失败：\n' + compileErr }], isError: true });
+            return;
+          }
+          runProcess(javaPath, ['-cp', classDir, className], srcFile, !useScriptPath, tempScriptPath, res, request);
+        });
+        compile.on('error', (error) => {
+          if (!useScriptPath && fs.existsSync(tempScriptPath)) fs.unlinkSync(tempScriptPath);
+          sendErrorResponse(res, request, '编译失败：' + error.message);
+        });
+      }
+      return;
+    } catch (error) {
+      console.error('运行Java失败:', error);
+      sendErrorResponse(res, request, `运行Java失败：${error.message}`);
+    }
+  }
+
+  function runProcess(exePath, exeArgs, srcFile, needsCleanup, tempPath, res, request) {
+    let stdout = '', stderr = '';
+    let responseSent = false;
+    const ps = spawn(exePath, exeArgs, { encoding: 'utf-8' });
+    ps.stdout.on('data', (data) => { stdout += data; });
+    ps.stderr.on('data', (data) => { stderr += data; });
+    ps.on('close', (code) => {
+      if (!responseSent) {
+        responseSent = true;
+        if (needsCleanup && fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+        sendResponse(res, request, { content: [{ type: 'text', text: stdout + (stderr ? '\n' + stderr : '') }] });
+      }
+    });
+    ps.on('error', (error) => {
+      if (!responseSent) {
+        responseSent = true;
+        if (needsCleanup && fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+        sendErrorResponse(res, request, `运行失败：${error.message}`);
+      }
+    });
+    setTimeout(() => {
+      if (!responseSent) {
+        responseSent = true;
+        ps.kill('SIGTERM');
+        if (needsCleanup && fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+        sendResponse(res, request, { content: [{ type: 'text', text: `超时 90s\n${stdout}${stderr ? '\n' + stderr : ''}` }] });
+      }
+    }, 90000);
+  }
+
+  function handleRunC(res, request, args) {
+    const { script, scriptPath } = args;
+    try {
+      const toolsListPath = path.join(__dirname, '..', '..', '..', 'Tools', 'ToolsList.xml');
+      const xmlContent = fs.readFileSync(toolsListPath, 'utf-8');
+      const tools = parseXMLSimple(xmlContent);
+      const cTool = tools.find(tool => tool.category === 'Language' && tool.name.toLowerCase().includes('c'));
+      if (!cTool || !cTool.path) throw new Error('未找到C环境');
+      let ccPath = cTool.path;
+      if (!/^[a-zA-Z]:\\/.test(cTool.path)) ccPath = path.join(__dirname, '..', '..', '..', cTool.path);
+      if (fs.statSync(ccPath).isDirectory()) {
+        ccPath = path.join(ccPath, 'gcc.exe');
+        if (!fs.existsSync(ccPath)) throw new Error(`C编译器不存在: ${ccPath}`);
+      }
+      const tempDir = path.join(os.tmpdir(), 'c_' + Date.now());
+      fs.mkdirSync(tempDir, { recursive: true });
+      const tempSrc = path.join(tempDir, 'code.c');
+      const tempExe = path.join(tempDir, 'code.exe');
+      const useScriptPath = scriptPath && fs.existsSync(scriptPath);
+      if (!useScriptPath) fs.writeFileSync(tempSrc, script);
+      const srcFile = useScriptPath ? scriptPath : tempSrc;
+      let stdout = '', stderr = '';
+      let responseSent = false;
+
+      const compile = spawn(ccPath, [srcFile, '-o', tempExe], { encoding: 'utf-8' });
+      compile.stderr.on('data', (data) => { stderr += data; });
+      compile.on('close', (code) => {
+        if (code !== 0) {
+          if (!responseSent) { responseSent = true; cleanup(); sendErrorResponse(res, request, `编译失败：\n${stderr}`); }
+          return;
+        }
+        const run = spawn(tempExe, [], { encoding: 'utf-8' });
+        run.stdout.on('data', (data) => { stdout += data; });
+        run.stderr.on('data', (data) => { stderr += data; });
+        run.on('close', (code) => {
+          if (!responseSent) {
+            responseSent = true;
+            cleanup();
+            sendResponse(res, request, { content: [{ type: 'text', text: stdout + (stderr ? '\n' + stderr : '') }] });
+          }
+        });
+        run.on('error', (error) => {
+          if (!responseSent) {
+            responseSent = true; cleanup();
+            sendErrorResponse(res, request, `运行失败：${error.message}`);
+          }
+        });
+      });
+      compile.on('error', (error) => {
+        if (!responseSent) {
+          responseSent = true; cleanup();
+          sendErrorResponse(res, request, `编译失败：${error.message}`);
+        }
+      });
+      function cleanup() { try { if (!useScriptPath) fs.rmSync(tempDir, { recursive: true, force: true }); } catch (_) {} }
+      setTimeout(() => {
+        if (!responseSent) {
+          responseSent = true;
+          try { compile.kill('SIGTERM'); } catch (_) {}
+          cleanup();
+          sendResponse(res, request, { content: [{ type: 'text', text: `C执行超时 90s\n${stdout}${stderr ? '\n' + stderr : ''}` }] });
+        }
+      }, 90000);
+    } catch (error) {
+      console.error('运行C失败:', error);
+      sendErrorResponse(res, request, `运行C失败：${error.message}`);
     }
   }
 
@@ -306,7 +468,7 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
           let processes = JSON.parse(stdout);
           if (!Array.isArray(processes)) processes = [processes];
           if (filter) processes = processes.filter(process => process.Name.toLowerCase().includes(filter.toLowerCase()));
-          sendResponse(res, request, { content: [{ type: 'text', text: `Windows进程列表：\n${JSON.stringify(processes, null, 2)}` }] });
+          sendResponse(res, request, { content: [{ type: 'text', text: JSON.stringify(processes, null, 2) }] });
         } catch (error) {
           console.error('获取Windows进程列表失败:', error);
           sendErrorResponse(res, request, `获取Windows进程列表失败：${error.message}`);
@@ -344,7 +506,7 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
       let requiresUAC = forceUAC || selectedTool.uac === 'on';
       const stats = fs.statSync(executablePath);
       if (stats.isDirectory()) {
-        require('child_process').exec(`start "" "${executablePath}"`);
+        exec(`start "" "${executablePath}"`);
       } else {
         const ext = path.extname(executablePath).toLowerCase();
         let command;
@@ -353,9 +515,9 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
         } else {
           command = requiresUAC ? `powershell -NoProfile -ExecutionPolicy Bypass -Command "& {Start-Process '${executablePath}' -Verb RunAs}"` : `powershell -NoProfile -ExecutionPolicy Bypass -Command "& {Start-Process '${executablePath}'}"`;
         }
-        require('child_process').exec(command, { encoding: 'utf-8' }, () => { });
+        exec(command, { encoding: 'utf-8' }, () => { });
       }
-      return { content: [{ type: 'text', text: `正在运行工具：${toolName}` }] };
+      return { content: [{ type: 'text', text: `已启动 ${toolName}` }] };
     } catch (error) {
       console.error('运行工具失败:', error);
       return { content: [{ type: 'text', text: `运行工具失败：${error.message}` }], isError: true };
@@ -368,12 +530,21 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
     let responseSent = false;
     new Promise((resolve) => {
       windows.frida.webContents.send('write-to-editor', { code, replace });
-      const timeout = setTimeout(() => resolve(null), 90000);
-      ipcMain.once('write-to-editor-complete', () => { clearTimeout(timeout); resolve(true); });
-    }).then((success) => {
+      const timeout = setTimeout(() => resolve({ cancelled: false, timeout: true }), 90000);
+      ipcMain.once('write-to-editor-complete', (_event, result) => {
+        clearTimeout(timeout);
+        resolve(result || { cancelled: false });
+      });
+    }).then((result) => {
       if (!responseSent) {
         responseSent = true;
-        success ? sendResponse(res, request, { content: [{ type: 'text', text: '成功向Frida IDE编辑器写入代码' }] }) : sendErrorResponse(res, request, '写入代码超时（90000毫秒=1分半钟）');
+        if (result.cancelled) {
+          sendErrorResponse(res, request, '写入已被用户取消（Esc）');
+        } else if (result.timeout) {
+          sendErrorResponse(res, request, '写入代码超时（90000毫秒=1分半钟）');
+        } else {
+          sendResponse(res, request, { content: [{ type: 'text', text: '成功向Frida IDE编辑器写入代码' }] });
+        }
       }
     }).catch((error) => {
       if (!responseSent) {
@@ -387,7 +558,7 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
     const { pid, processName = '' } = args;
     if (!checkFridaWindow()) return { content: [{ type: 'text', text: '错误：Frida IDE窗口未打开' }], isError: true };
     windows.frida.webContents.send('set-frida-process', { pid, processName });
-    return { content: [{ type: 'text', text: `成功设置Frida IDE目标进程：PID=${pid}${processName ? ` (${processName})` : ''}` }] };
+    return { content: [{ type: 'text', text: `PID=${pid}${processName ? ' ' + processName : ''}` }] };
   }
 
   function handleOpenFridaIDE() {
@@ -405,7 +576,7 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
   function handleGetFridaProcesses(res, request, args) {
     const { filter = '' } = args;
     if (!checkFridaWindow()) { sendErrorResponse(res, request, '错误：Frida IDE窗口未打开'); return; }
-    const Fridapath = path.join(__dirname, '..', 'Plugins', 'Frida');
+    const Fridapath = path.join(__dirname, '..', 'Plugins', 'frida');
     const fastlistProcess = spawn(`${Fridapath}/exten/Fastlist`);
     let processes = [];
     let responseSent = false;
@@ -425,7 +596,7 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
         responseSent = true;
         if (processes.length > 0) {
           const processList = processes.map(p => `PID: ${p.pid}, 名称: ${p.name}`).join('\n');
-          sendResponse(res, request, { content: [{ type: 'text', text: `找到 ${processes.length} 个进程：\n\n${processList}` }] });
+          sendResponse(res, request, { content: [{ type: 'text', text: processList || '(empty)' }] });
         } else {
           sendResponse(res, request, { content: [{ type: 'text', text: filter ? `未找到匹配的进程：${filter}` : '未找到进程' }] });
         }
@@ -525,9 +696,9 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
 
   function handleUsePluginTools(res, request) {
     try {
-      const mcpToolsDir = path.join(__dirname, '..', 'Plugins', 'McpTools');
-      const structure = getDirectoryStructure(mcpToolsDir);
-      sendResponse(res, request, { content: [{ type: 'text', text: `目录路径：${mcpToolsDir}\n目录结构：\n${structure}\n（请使用 Powershell 调用工具）` }] });
+      const cliDir = path.join(__dirname, '..', 'Plugins', 'CLI');
+      const structure = getDirectoryStructure(cliDir);
+      sendResponse(res, request, { content: [{ type: 'text', text: structure }] });
     } catch (error) {
       sendErrorResponse(res, request, `获取McpTools目录失败：${error.message}`);
     }
@@ -553,7 +724,7 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
           let result;
           switch (request.method) {
             case 'initialize':
-              result = { protocolVersion: request.params?.protocolVersion || '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'MetaSword', version: '1.0.0' } };
+              result = { protocolVersion: request.params?.protocolVersion || '2026-06-26', capabilities: { tools: {} }, serverInfo: { name: '次元剑', version: '1.0.0' } };
               break;
             case 'tools/list':
               result = {
@@ -561,38 +732,38 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
                   { name: 'getFridaCode', description: '获取 Frida IDE 编辑器代码', inputSchema: { type: 'object', properties: {} } },
                   { name: 'getFridaProcesses', description: '获取 Frida IDE 进程列表', inputSchema: { type: 'object', properties: { filter: { type: 'string', description: '进程名称过滤关键字（可选）' } } } },
                   { name: 'getFridaTerminalOutput', description: '获取 Frida IDE 终端输出', inputSchema: { type: 'object', properties: { lines: { type: 'number', description: '获取最后几行（默认50行）' } } } },
-                  { name: 'getToolsBoxlist', description: '获取工具箱内置工具列表', inputSchema: { type: 'object', properties: {} } },
-                  { name: 'getWindowsProcesses', description: '获取 Windows 进程列表', inputSchema: { type: 'object', properties: { filter: { type: 'string', description: '进程名称过滤关键字（可选）' } } } },
-                  { name: 'runPythonScript', description: '运行 Python 脚本', inputSchema: { type: 'object', properties: { script: { type: 'string', description: 'Python脚本内容' }, scriptPath: { type: 'string', description: 'Python脚本文件路径（可选）' } }, required: ['script'] } },
-                  { name: 'writeFile', description: '写入文件', inputSchema: { type: 'object', properties: { filePath: { type: 'string', description: '文件路径' }, content: { type: 'string', description: '文件内容' }, overwrite: { type: 'boolean', description: '是否覆盖现有文件（默认为true）' } }, required: ['filePath', 'content'] } },
-                  { name: 'readFile', description: '读取文件', inputSchema: { type: 'object', properties: { filePath: { type: 'string', description: '文件路径' } }, required: ['filePath'] } },
-                  { name: 'deleteFile', description: '删除文件', inputSchema: { type: 'object', properties: { filePath: { type: 'string', description: '文件路径' }, force: { type: 'boolean', description: '是否强制删除（默认为false）' } }, required: ['filePath'] } },
-                  { name: 'runPowerShellCommand', description: '运行 PowerShell 命令', inputSchema: { type: 'object', properties: { command: { type: 'string', description: 'PowerShell命令' }, timeout: { type: 'number', description: '执行超时时间（毫秒，默认90000=1分半钟）' } }, required: ['command'] } },
-                  { name: 'moveToolsBoxTool', description: '移动工具到指定位置', inputSchema: { type: 'object', properties: { toolName: { type: 'string', description: '要移动的工具名称' }, targetPosition: { type: 'integer', description: '目标位置' }, targetCategory: { type: 'string', description: '目标分类' } }, required: ['toolName', 'targetPosition'] } },
+                  { name: 'getToolboxList', description: '获取工具箱内置工具列表', inputSchema: { type: 'object', properties: {} } },
+                  { name: 'getWindowsProcesses', description: '获取 Windows 进程列表（返回 JSON 格式，比 Get-Process 更结构化）', inputSchema: { type: 'object', properties: { filter: { type: 'string', description: '进程名称过滤关键字（可选）' } } } },
+                  { name: 'runPython', description: '运行 Python 脚本', inputSchema: { type: 'object', properties: { script: { type: 'string', description: 'Python脚本内容' }, scriptPath: { type: 'string', description: 'Python脚本文件路径（可选）' } }, required: ['script'] } },
+                  { name: 'runJava', description: '运行 Java 代码或 jar 包', inputSchema: { type: 'object', properties: { script: { type: 'string', description: 'Java 源代码' }, scriptPath: { type: 'string', description: 'jar 文件路径' }, jarArgs: { type: 'array', items: { type: 'string' }, description: '传给 jar 的命令行参数，如 ["d","app.apk","-o","out/"]' } }, required: [] } },
+                  { name: 'runC', description: '编译并运行 C 代码', inputSchema: { type: 'object', properties: { script: { type: 'string', description: 'C代码内容' }, scriptPath: { type: 'string', description: 'C文件路径（可选）' } }, required: ['script'] } },
+                  { name: 'moveToolboxTool', description: '移动工具到指定位置', inputSchema: { type: 'object', properties: { toolName: { type: 'string', description: '要移动的工具名称' }, targetPosition: { type: 'integer', description: '目标位置' }, targetCategory: { type: 'string', description: '目标分类' } }, required: ['toolName', 'targetPosition'] } },
                   { name: 'openFridaIDE', description: '打开 Frida IDE 窗口', inputSchema: { type: 'object', properties: {} } },
                   { name: 'runFridaCode', description: '运行 Frida IDE 编辑器代码', inputSchema: { type: 'object', properties: {} } },
-                  { name: 'runToolsBoxTool', description: '运行工具箱内置工具', inputSchema: { type: 'object', properties: { toolName: { type: 'string', description: '工具名称' }, forceUAC: { type: 'boolean', description: '是否强制以管理员身份运行' } }, required: ['toolName'] } },
+                  { name: 'runToolboxTool', description: '运行次元剑工具箱中的快捷工具（GUI 或非 CLI 程序）', inputSchema: { type: 'object', properties: { toolName: { type: 'string', description: '工具名称' }, forceUAC: { type: 'boolean', description: '是否强制以管理员身份运行' } }, required: ['toolName'] } },
                   { name: 'setFridaProcess', description: '设置 Frida IDE 目标进程 PID', inputSchema: { type: 'object', properties: { pid: { type: 'number', description: '进程 PID' }, processName: { type: 'string', description: '进程名称（可选，用于显示）' } }, required: ['pid'] } },
-                  { name: 'swapToolsBoxTool', description: '交换两个工具的位置', inputSchema: { type: 'object', properties: { tool1: { type: 'string', description: '第一个工具名称' }, tool2: { type: 'string', description: '第二个工具名称' } }, required: ['tool1', 'tool2'] } },
+                  { name: 'swapToolboxTool', description: '交换两个工具的位置', inputSchema: { type: 'object', properties: { tool1: { type: 'string', description: '第一个工具名称' }, tool2: { type: 'string', description: '第二个工具名称' } }, required: ['tool1', 'tool2'] } },
                   { name: 'writeToFridaEditor', description: '向 Frida IDE 编辑器写入代码', inputSchema: { type: 'object', properties: { code: { type: 'string', description: '要写入的代码' }, replace: { type: 'boolean', description: '是否替换现有代码（默认为true）' } }, required: ['code'] } },
-                  { name: 'usePluginTools', description: '使用内置插件进行操作', inputSchema: { type: 'object', properties: {} } }
+                  { name: 'getPluginToolsDir', description: '次元剑/Frida IDE 内部工具目录，仅供 IDE 使用，AI 对话请用 PowerShell 代替', inputSchema: { type: 'object', properties: {} } }
                 ]
               };
               break;
             case 'tools/call':
               const { name, arguments: args } = request.params;
               switch (name) {
-                case 'getToolsBoxlist': {
+                case 'getToolboxList': {
                   const xmlContent = fs.readFileSync(toolsListPath, 'utf-8');
                   const tools = parseXMLSimple(xmlContent);
-                  result = { content: [{ type: 'text', text: `工具箱共有 ${tools.length} 个工具:\n\n` + tools.map((t, i) => `${i + 1}. [${t.category}] ${t.name}`).join('\n') }] };
+                  result = { content: [{ type: 'text', text: tools.map((t, i) => `${i + 1}. [${t.category}] ${t.name}`).join('\n') }] };
                   break;
                 }
-                case 'swapToolsBoxTool': result = handleSwapToolsBoxTool(args); break;
-                case 'moveToolsBoxTool': result = handleMoveToolsBoxTool(args); break;
-                case 'runToolsBoxTool': result = handleRunToolsBoxTool(args); break;
+                case 'swapToolboxTool': result = handleSwapToolsBoxTool(args); break;
+                case 'moveToolboxTool': result = handleMoveToolsBoxTool(args); break;
+                case 'runToolboxTool': result = handleRunToolsBoxTool(args); break;
                 case 'getWindowsProcesses': handleGetWindowsProcesses(res, request, args); return;
-                case 'runPythonScript': handleRunPythonScript(res, request, args); return;
+                case 'runPython': handleRunPythonScript(res, request, args); return;
+                case 'runJava': handleRunJava(res, request, args); return;
+                case 'runC': handleRunC(res, request, args); return;
                 case 'readFile': handleReadFile(res, request, args); return;
                 case 'deleteFile': handleDeleteFile(res, request, args); return;
                 case 'runPowerShellCommand': handleRunPowerShellCommand(res, request, args); return;
@@ -638,6 +809,19 @@ function startMCPHttpServer(windows, createFridaIDEWindow) {
     const port = isAvailable ? defaultPort : Math.floor(Math.random() * (65535 - 1024 + 1)) + 1024;
     server.listen(port, '127.0.0.1', () => {
       actualPort = port;
+      const claudeJsonPath = path.join(__dirname, '..', 'Plugins', 'claude', '.claude.json');
+      try {
+        let config = {};
+        if (fs.existsSync(claudeJsonPath)) {
+          config = JSON.parse(fs.readFileSync(claudeJsonPath, 'utf-8'));
+        }
+        if (!config.mcpServers) config.mcpServers = {};
+        if (!config.mcpServers['次元剑']) {
+          config.mcpServers['次元剑'] = { type: 'http', url: '' };
+        }
+        config.mcpServers['次元剑'].url = `http://127.0.0.1:${actualPort}/mcp`;
+        fs.writeFileSync(claudeJsonPath, JSON.stringify(config, null, 2), 'utf-8');
+      } catch (e) {}
       console.log(`[MCP HTTP] Server running at http://127.0.0.1:${actualPort}/mcp`);
     });
   });

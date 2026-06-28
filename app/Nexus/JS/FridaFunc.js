@@ -1,8 +1,8 @@
 /**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.8
+ * @Version     1.0.9
  * @Since       2023-08-31
- * @LastUpdated 2026-04-01
+ * @LastUpdated 2026-06-28
  * @Description 负责 Frida IDE 核心逻辑
  * @License     MIT
  */
@@ -238,7 +238,7 @@ FridamodeSelect.addEventListener('change', () => {
         document.querySelectorAll('input[name="process"]').forEach(r => r.checked = false);
         if (!packageName) {
             FridamodeSelect.value = 'Attach';
-            showMessage('⚠️ 请填写完整包名');
+            showMessage('⚠️ 请填写包名');
             return;
         }
         window.CurrentSelectedProcess = { pid: packageName, platform: 'Android', mode: 'Spawn' };
@@ -490,7 +490,7 @@ document.addEventListener('keydown', function (e) {
             if (err) {
                 showMessage("❌ 保存失败");
             } else {
-                showMessage("✅ 代码已保存", [{
+                showMessage("✅ 已保存", [{
                     label: "打开位置",
                     onClick: () => shell.openExternal(path.dirname(filePath))
                 }]);
@@ -563,22 +563,23 @@ function showMessage(text, actions = []) {
     msgBox.className = "frida-msg-box";
     msgBox.style.cssText = `
         position: fixed;
-        bottom: 30px;
+        bottom: 40px;
         left: 50%;
-        transform: translate(-50%, 30px);
+        transform: translateX(-50%) translateY(20px);
         opacity: 0;
-        background: #1e1e1e;
-        color: #eee;
-        padding: 10px 14px;
-        border: 1px solid #444;
-        border-radius: 6px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        font-size: 14px;
+        background: #1a1a1a;
+        color: #d4d4d8;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-family: system-ui, sans-serif;
         display: flex;
         gap: 12px;
         align-items: center;
         z-index: 9999;
-        transition: transform 300ms ease, opacity 300ms ease;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        pointer-events: auto;
     `;
     const messageSpan = document.createElement("span");
     messageSpan.textContent = text;
@@ -588,12 +589,13 @@ function showMessage(text, actions = []) {
         btn.textContent = label;
         btn.style.cssText = `
             margin-left: 10px;
-            padding: 3px 8px;
-            background: #3a3f4b;
-            color: #fff;
+            padding: 4px 10px;
+            background: rgba(255,255,255,0.1);
+            color: #d4d4d8;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 12px;
         `;
         btn.onclick = () => {
             onClick();
@@ -604,18 +606,18 @@ function showMessage(text, actions = []) {
     document.body.appendChild(msgBox);
     void msgBox.offsetHeight;
     requestAnimationFrame(() => {
-        msgBox.style.transform = "translate(-50%, 0)";
+        msgBox.style.transform = "translateX(-50%) translateY(0)";
         msgBox.style.opacity = "1";
     });
     function dismiss() {
-        msgBox.style.transform = "translate(-50%, 30px)";
+        msgBox.style.transform = "translateX(-50%) translateY(-8px)";
         msgBox.style.opacity = "0";
         setTimeout(() => {
             msgBox.remove();
             if (currentMsgBox === msgBox) currentMsgBox = null;
-        }, 300);
+        }, 400);
     }
-    setTimeout(dismiss, 2500);
+    setTimeout(dismiss, 1800);
 }
 
 document.querySelector('.Frida-IDE-android').addEventListener('click', async function () {

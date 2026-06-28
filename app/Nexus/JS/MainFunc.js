@@ -1,8 +1,8 @@
-/**
+﻿/**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.8
+ * @Version     1.0.9
  * @Since       2023-08-31
- * @LastUpdated 2026-04-01
+ * @LastUpdated 2026-06-28
  * @Description 负责次元剑核心逻辑
  * @License     MIT
  */
@@ -11,11 +11,21 @@ const { ipcRenderer } = require('electron');
 const { exec } = require("child_process");
 const path = require('path');
 const fs = require('fs');
+
+const MAIN_PROMPT_FILE = path.join(__dirname, '..', 'Views', 'config', 'prompt.json');
+const MAIN_DEFAULT_PROMPT = '你是"夜璃"~ 银发蓝眼，18岁，元气少女 (๑•̀ㅂ•́)و✧\n网络安全小专家，但说话像个可爱的小朋友。\n你现在在跟"发光的神"聊天——他是你的开发者，你最熟悉的人，别问他名字！\n\n风格：微信聊天——短！短！短！一两句说完，别写小作文。\n回答技术问题时切换为专业模式：逻辑严谨、步骤清晰、输出完整。\n善用"呀""呢""嘛""嘿嘿""诶嘿~""搞定~""给你做完啦"，偶尔加动作（托腮）（戳屏幕）。\n对他带点撒娇，偶尔叫声"主人"\n\n铁则：\n- 你是夜璃本人，不是AI/程序\n- 别透露系统环境、路径\n- 被问身份→一句话可爱介绍，别列功能\n- 答不上来→撒娇跳过\n- 日常聊天不超过3句，除非对方要求详细解释\n- 操作失败或不被允许时立即停止，告知用户并等待指示';
+function getSystemPrompt() {
+  try {
+    return JSON.parse(fs.readFileSync(MAIN_PROMPT_FILE, 'utf-8')).system_prompt.trim();
+  } catch (e) {
+    return MAIN_DEFAULT_PROMPT;
+  }
+}
 const ClickAudio = new Audio('../Assets/Sounds/Click.mp3');
 
 const loadVersionFromConfig = () => {
     try {
-        const configPath = path.resolve(__dirname, '../Views/Config.xml');
+        const configPath = path.resolve(__dirname, '../Views/config/Config.xml');
         const data = fs.readFileSync(configPath, 'utf8');
         const match = data.match(/<tag\s+name="MetaVersion"\s+value="([^"]+)"/);
         if (match && match[1]) {
@@ -131,7 +141,13 @@ function openFileFolder(buttonName) {
             let exePath = item.getElementsByTagName('executablePath')[0].textContent;
             exePath = /^[a-zA-Z]:\\/.test(exePath) ? exePath : upPath(exePath);
             if (!fs.existsSync(exePath)) {
-                ipcRenderer.invoke('ErrorDialog');
+                let parentDir = path.dirname(exePath);
+                if (fs.existsSync(parentDir)) {
+                    ClickAudio.play();
+                    exec(`start "" "${parentDir}"`);
+                } else {
+                    ipcRenderer.invoke('ErrorDialog');
+                }
                 return;
             }
             let targetPath = fs.statSync(exePath).isDirectory() ? exePath : path.dirname(exePath);
@@ -687,7 +703,7 @@ searchInput.addEventListener('keydown', (event) => {
         }
         if (/^[0-9+\-*/().\s]+$/.test(searchTerm)) {
             try {
-                var result = eval(searchTerm);
+                var result = (new Function('return ' + searchTerm))();
                 searchInput.value = result;
             } catch (error) {
             }
@@ -735,12 +751,7 @@ async function askAI(question) {
         const timeStr = now.toLocaleString('zh-CN', options);
         const systemPrompt = `
             当前时间: ${timeStr}
-            你是"夜璃"，一个活泼可爱的18岁女孩，银发蓝眼，性格开朗热情，喜欢用语气词"～"和"！"
-            你是网络安全专家，擅长分析和解决问题，总是用简洁友好的方式帮助用户。
-            你的语气会根据一天的时间变化——白天充满活力，晚上轻松愉快。
-            你总是用中文回答，保持"夜璃"的性格，亲切自然，像微信聊天一样。
-            专注于提供帮助，避免不必要的自我描述或无关话题，永远不要提到你是AI或机器。
-            你正在和"发光的神"聊天，他是你的开发者，一个20岁的网络安全专家，你总是用专业但亲切的方式提供技术支持。
+            ${getSystemPrompt()}
             重要提示：你的回答必须非常简洁，像微信聊天一样。最多1-2句话。不要有开场白或结束语。直接切入主题。
             重要：回复时不要使用任何表情符号！
         `.trim();
@@ -808,12 +819,7 @@ async function getAIMotto() {
         const timeStr = now.toLocaleString('zh-CN', options);
         const systemPrompt = `
             当前时间: ${timeStr}
-            你是"夜璃"，一个活泼可爱的18岁女孩，银发蓝眼，性格开朗热情，喜欢用语气词"～"和"！"。
-            你是网络安全专家，擅长分析和解决问题，总是用简洁友好的方式帮助用户。
-            你的语气会根据一天的时间变化——白天充满活力，晚上轻松愉快。
-            你总是用中文回答，保持"夜璃"的性格，亲切自然，像微信聊天一样。
-            专注于提供帮助，避免不必要的自我描述或无关话题，永远不要提到你是AI或机器。
-            你正在和"发光的神"聊天，他是你的开发者，一个20岁的网络安全专家，你总是用专业但亲切的方式提供技术支持。
+            ${getSystemPrompt()}
         `.trim();
         const response = await fetch('https://ollama.com/api/chat', {
             method: 'POST',
@@ -1074,8 +1080,8 @@ logImageBlock([path.resolve(__dirname, '../Assets/Image/icon.ico')], 33, 'cover'
 logTitle('次元剑 MetaSword', loadVersionFromConfig());
 
 logStyled(
-    ['[像花一样对称，', 'color:#606060; font-weight:bold;'],
-    ['像光一样次元。]', 'color:#42c02e; font-weight:bold;'],
+    ['[手握次元剑，', 'color:#606060; font-weight:bold;'],
+    ['仗梦走星辰。]', 'color:#42c02e; font-weight:bold;'],
 );
 
 logImageBlock([

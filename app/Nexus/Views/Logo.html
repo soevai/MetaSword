@@ -3,9 +3,9 @@
 
 <!--
   @Author      发光的神 (VoxShadow)
-  @Version     1.0.8
+  @Version     1.0.9
   @Since       2023-08-31
-  @LastUpdated 2026-04-01
+  @LastUpdated 2026-06-28
   @Description 次元剑启动开场动画界面
   @License     MIT
 -->
@@ -43,7 +43,7 @@
         const path = require('path');
         const xml2js = require('xml2js');
 
-        const CONFIG_PATH = path.join(__dirname, '..', 'Views', 'Config.xml');
+        const CONFIG_PATH = path.join(__dirname, '..', 'Views', 'config', 'Config.xml');
         const video = document.getElementById('video');
 
         const loadAnimationSpeed = async () => {

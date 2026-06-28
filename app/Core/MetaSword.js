@@ -1,8 +1,8 @@
 /**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.8
+ * @Version     1.0.9
  * @Since       2023-08-31
- * @LastUpdated 2026-04-01
+ * @LastUpdated 2026-06-28
  * @Description Electron 主进程入口
  * @License     MIT
  */
@@ -22,9 +22,9 @@ const filterLog = (...args) => {
 console.log = (...args) => filterLog(...args) && originalConsoleLog(...args);
 console.warn = (...args) => filterLog(...args) && originalConsoleWarn(...args);
 
-let windows = { logo: null, main: null, frida: null, control: null, error: null, addtool: null };
+let windows = { logo: null, main: null, frida: null, control: null, error: null, addtool: null, toolpanel: null };
 let isToggling = false, originalBounds;
-/*
+
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
@@ -43,13 +43,12 @@ if (!gotTheLock) {
     }
   });
 }
-*/
 
 const viewsPath = path.join(__dirname, "..", '/Nexus/Views');
 const commonWebPreferences = {
   contextIsolation: false, nodeIntegration: true, webviewTag: true, devTools: true, backgroundThrottling: false
 };
-const filePath = path.join(__dirname, '..', 'Nexus', 'Views', 'config.xml');
+const filePath = path.join(__dirname, '..', 'Nexus', 'Views', 'config', 'Config.xml');
 const toolsListPath = path.join(__dirname, '..', '..', '..', 'Tools', 'ToolsList.xml');
 let lastWidth = 0, lastHeight = 0, resizeTimeout = null, currentVersion = null;
 let mainWindowWidth = 550, mainWindowHeight = 343, controlWindowWidth = 550, controlWindowHeight = 343;
@@ -91,26 +90,41 @@ const syncVersionToPackageJson = (version) => {
   windows.main?.webContents?.send('version-updated', version);
 };
 
+
+let configWriteLock = Promise.resolve();
+const writeConfig = async (updateFn) => {
+  const task = configWriteLock.then(async () => {
+    const data = await fs.promises.readFile(filePath, 'utf8');
+    const result = await xml2js.parseStringPromise(data);
+    updateFn(result);
+    const builder = new xml2js.Builder();
+    const xml = builder.buildObject(result);
+    await fs.promises.writeFile(filePath, xml, 'utf8');
+  }).catch(err => console.error('writeConfig error:', err));
+  configWriteLock = task;
+  return task;
+};
+
+ipcMain.handle('save-config', async (event, name, value) => {
+  await writeConfig((result) => {
+    const settings = result?.config?.settings?.[0]?.tag || [];
+    const tag = settings.find(tag => tag.$?.name === name);
+    if (tag) tag.$.value = String(value);
+  });
+});
+
 const updateWindowSizeInConfig = (width, height) => {
-  if (Math.abs(width - lastWidth) < 10 && Math.abs(height - lastHeight) < 10) return;
-  lastWidth = width, lastHeight = height;
+  const w = Math.min(width, 900), h = Math.min(height, 550);
+  if (Math.abs(w - lastWidth) < 10 && Math.abs(h - lastHeight) < 10) return;
+  lastWidth = w, lastHeight = h;
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
-    fs.readFile(filePath, 'utf8', (err, data) => {
-      if (err) { console.error('Error reading config.xml:', err); return; }
-      xml2js.parseString(data, (err, result) => {
-        if (err) { console.error('Error parsing XML:', err); return; }
-        try {
-          const settings = result?.config?.settings?.[0]?.tag || [];
-          const metaWindowWidthTag = settings.find(tag => tag.$?.name === 'MetaWindowWidth');
-          const metaWindowHeightTag = settings.find(tag => tag.$?.name === 'MetaWindowHeight');
-          if (metaWindowWidthTag) metaWindowWidthTag.$.value = width.toString();
-          if (metaWindowHeightTag) metaWindowHeightTag.$.value = height.toString();
-          const builder = new xml2js.Builder();
-          const xml = builder.buildObject(result);
-          fs.writeFile(filePath, xml, (err) => err && console.error('Error writing config.xml:', err));
-        } catch (e) { console.error('Error updating config.xml:', e); }
-      });
+    writeConfig((result) => {
+      const settings = result?.config?.settings?.[0]?.tag || [];
+      const metaWindowWidthTag = settings.find(tag => tag.$?.name === 'MetaWindowWidth');
+      const metaWindowHeightTag = settings.find(tag => tag.$?.name === 'MetaWindowHeight');
+      if (metaWindowWidthTag) metaWindowWidthTag.$.value = w.toString();
+      if (metaWindowHeightTag) metaWindowHeightTag.$.value = h.toString();
     });
   }, 500);
 };
@@ -130,11 +144,16 @@ const createWindow = (name, options, filePath) => {
 
 const createMainWindow = () => {
   windows.main = new BrowserWindow({
-    width: mainWindowWidth, height: mainWindowHeight, minWidth: 550, minHeight: 343, maxWidth: 800, maxHeight: 480,
+    width: mainWindowWidth, height: mainWindowHeight, minWidth: 550, minHeight: 343, maxWidth: 900, maxHeight: 550,
     frame: false, resizable: true, transparent: true, alwaysOnTop: false,
     webPreferences: { contextIsolation: false, nodeIntegration: true }
   });
   windows.main.loadFile(path.join(viewsPath, 'Home.html'));
+  windows.main.webContents.on('console-message', (event, level, message) => {
+    if (message.includes('Slow network is detected') || message.includes('Fallback font will be used while loading')) {
+      event.preventDefault();
+    }
+  });
   windows.main.on('resized', () => {
     const [newWidth, newHeight] = windows.main.getSize();
     if (newWidth !== controlWindowWidth || newHeight !== controlWindowHeight) {
@@ -177,6 +196,53 @@ const createMainWindow = () => {
     fs.existsSync(themePath) && copyDir(themePath, nexusPath);
     windows.main && !windows.main.isDestroyed() && windows.main.reload();
   });
+
+  ipcMain.on('show-tool-panel', () => {
+    createToolPanelWindow();
+    updateToolPanelPosition();
+  });
+  ipcMain.handle('open-skills-dialog', async () => {
+    const result = await dialog.showOpenDialog(windows.main, {
+      title: '选择 Skills 压缩包',
+      filters: [{ name: 'ZIP 文件', extensions: ['zip'] }],
+      properties: ['openFile']
+    });
+    return result.canceled ? null : result.filePaths[0];
+  });
+  ipcMain.on('hide-tool-panel', () => {
+    if (windows.toolpanel && !windows.toolpanel.isDestroyed()) {
+      windows.toolpanel.close();
+      windows.toolpanel = null;
+    }
+  });
+  ipcMain.on('tool-call', (event, data) => {
+    if (!windows.toolpanel || windows.toolpanel.isDestroyed()) createToolPanelWindow();
+    windows.toolpanel?.webContents?.send('tool-call', data);
+  });
+  ipcMain.on('tool-result', (event, data) => {
+    windows.toolpanel?.webContents?.send('tool-result', data);
+  });
+
+  ipcMain.on('perm-request', (event, data) => {
+    if (!windows.toolpanel || windows.toolpanel.isDestroyed()) createToolPanelWindow();
+    windows.toolpanel?.webContents?.send('perm-request', data);
+  });
+  ipcMain.on('perm-response', (event, data) => {
+    windows.main?.webContents?.send('perm-response', data);
+  });
+  ipcMain.on('clear-tool-log', () => {
+    windows.toolpanel?.webContents?.send('clear-tool-log');
+  });
+
+
+  windows.main.on('move', updateToolPanelPosition);
+  windows.main.on('resize', updateToolPanelPosition);
+  windows.main.on('close', () => {
+    if (windows.toolpanel && !windows.toolpanel.isDestroyed()) {
+      windows.toolpanel.close();
+      windows.toolpanel = null;
+    }
+  });
 };
 
 const createTransparentWindow = () => {
@@ -196,9 +262,57 @@ const createFridaIDEWindow = () => {
     windows.frida.focus();
     return;
   }
-  createWindow('frida', { width: 700, height: 800, frame: false, resizable: true, transparent: true, minWidth: 550, minHeight: 345 }, path.join(viewsPath, 'Frida.html'));
+  const { width: sw, height: sh } = screen.getPrimaryDisplay().workAreaSize;
+  const ww = 750, wh = 820;
+  const x = Math.floor(Math.random() * (sw - ww));
+  const y = Math.floor(Math.random() * (sh - wh));
+  createWindow('frida', { width: ww, height: wh, x, y, frame: false, resizable: true, transparent: true, minWidth: 550, minHeight: 345 }, path.join(viewsPath, 'Frida.html'));
   Menu.setApplicationMenu(null);
   globalShortcut.register('Ctrl+U', () => windows.frida?.webContents?.openDevTools());
+};
+
+const createToolPanelWindow = () => {
+  if (windows.toolpanel && !windows.toolpanel.isDestroyed()) {
+    windows.toolpanel.isMinimized() && windows.toolpanel.restore();
+    !windows.toolpanel.isVisible() && windows.toolpanel.show();
+    windows.toolpanel.focus();
+    return;
+  }
+  const mainBounds = windows.main?.getBounds();
+  windows.toolpanel = new BrowserWindow({
+    width: 300,
+    height: mainBounds ? mainBounds.height : 600,
+    x: mainBounds ? mainBounds.x + mainBounds.width : 900,
+    y: mainBounds ? mainBounds.y : 0,
+    frame: false,
+    resizable: false,
+    transparent: true,
+    parent: windows.main,
+    alwaysOnTop: false,
+    skipTaskbar: true,
+    hasShadow: true,
+    webPreferences: { contextIsolation: false, nodeIntegration: true }
+  });
+  windows.toolpanel.loadFile(path.join(viewsPath, 'ToolPanel.html'));
+  windows.toolpanel.webContents.on('console-message', (event, level, message) => {
+    if (message.includes('Slow network is detected') || message.includes('Fallback font will be used while loading')) {
+      event.preventDefault();
+    }
+  });
+  windows.toolpanel.on('closed', () => (windows.toolpanel = null));
+  globalShortcut.register('Ctrl+T', () => windows.toolpanel?.webContents?.openDevTools());
+};
+
+const updateToolPanelPosition = () => {
+  if (!windows.toolpanel || windows.toolpanel.isDestroyed()) return;
+  if (!windows.main || windows.main.isDestroyed()) return;
+  const mainBounds = windows.main.getBounds();
+  windows.toolpanel.setBounds({
+    x: mainBounds.x + mainBounds.width,
+    y: mainBounds.y,
+    width: 300,
+    height: mainBounds.height
+  });
 };
 
 const createControlWindow = () => {
@@ -208,7 +322,7 @@ const createControlWindow = () => {
     windows.control.focus();
     return;
   }
-  const controlWindowOptions = { width: controlWindowWidth, height: controlWindowHeight, frame: false, minWidth: 550, minHeight: 343, maxWidth: 800, maxHeight: 480, resizable: true, alwaysOnTop: false, transparent: true, show: true };
+  const controlWindowOptions = { width: controlWindowWidth, height: controlWindowHeight, frame: false, minWidth: 550, minHeight: 343, maxWidth: 900, maxHeight: 550, resizable: true, alwaysOnTop: false, transparent: true, show: true };
   if (windows.main && !windows.main.isDestroyed()) {
     const mainWindowBounds = windows.main.getBounds();
     controlWindowOptions.x = mainWindowBounds.x, controlWindowOptions.y = mainWindowBounds.y;
@@ -242,7 +356,7 @@ const createAddToolWindow = (data = {}) => {
     data.currentCategory && setTimeout(() => windows.addtool.webContents.send('set-category', data.currentCategory), 100);
     return;
   }
-  const addToolWindowOptions = { width: controlWindowWidth, height: controlWindowHeight, frame: false, minWidth: 550, minHeight: 343, maxWidth: 810, maxHeight: 480, resizable: true, alwaysOnTop: false, transparent: true };
+  const addToolWindowOptions = { width: controlWindowWidth, height: controlWindowHeight, frame: false, minWidth: 550, minHeight: 343, maxWidth: 900, maxHeight: 550, resizable: true, alwaysOnTop: false, transparent: true };
   if (windows.main && !windows.main.isDestroyed()) {
     const mainWindowBounds = windows.main.getBounds();
     addToolWindowOptions.x = mainWindowBounds.x, addToolWindowOptions.y = mainWindowBounds.y;
@@ -321,6 +435,7 @@ const registerIpcHandlers = () => {
     ['addtool-minimizeWindow', () => windows.addtool?.minimize()],
     ['addtool-closeWindow', () => windows.addtool?.close()],
     ['frida-minimizeWindow', (event) => BrowserWindow.fromWebContents(event.sender)?.minimize()],
+    ['frida-stop-ai', () => { windows.main?.webContents?.send('stop-ai'); }],
     ['frida-maximizeWindow', (event) => {
       const win = BrowserWindow.fromWebContents(event.sender);
       if (win && !win.isDestroyed()) { originalBounds = win.getBounds(); win.maximize(); }
