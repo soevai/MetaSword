@@ -1,6 +1,6 @@
 <h1 align="center">⚔️ 次元剑（MetaSword）</h1>
 
-一款基于 Electron 的安全工具集成平台，聚合逆向分析与渗透测试工具链，支持多主题切换、插件扩展 — 免配置，开箱即用。
+一款基于 Electron 的安全工具集成平台，聚合逆向渗透工具箱，支持插件扩展、多主题切换，开箱即用
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-1.0.9-orange" alt="Version" />
