@@ -1,8 +1,15 @@
 <h1 align="center">⚔️ 次元剑（MetaSword）</h1>
 
-一个基于 Electron 的安全工具集成平台。聚合逆向分析与渗透测试工具链，支持多主题切换、插件扩展 — 免配置，开箱即用。
+一款基于 Electron 的安全工具集成平台。聚合逆向分析与渗透测试工具链，支持多主题切换、插件扩展 — 免配置，开箱即用。
 
-![Version](https://img.shields.io/badge/version-1.0.9-orange) ![Electron](https://img.shields.io/badge/Electron-blue?logo=electron) ![Platform](https://img.shields.io/badge/platform-Windows-blue?logo=windows) ![License](https://img.shields.io/badge/license-MIT-green) ![Status](https://img.shields.io/badge/status-active-success) ![Author](https://img.shields.io/badge/Author-VoxShadow-orange?logo=github)
+<p align="center">
+  <img src="https://img.shields.io/badge/version-1.0.9-orange" alt="Version" />
+  <img src="https://img.shields.io/badge/Electron-blue?logo=electron" alt="Electron" />
+  <img src="https://img.shields.io/badge/platform-Windows-blue?logo=windows" alt="Platform" />
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="License" />
+  <img src="https://img.shields.io/badge/status-active-success" alt="Status" />
+  <img src="https://img.shields.io/badge/Author-VoxShadow-orange?logo=github" alt="Author" />
+</p>
 
 <p align="center">
   <img src="https://www.52tt.pro/usr/uploads/2026/01/1627329843.png" width="100%" alt="MetaSword Logo"/>
@@ -160,6 +167,9 @@ MetaSword/
 
 **主题不生效？** 检查 `themes.json` 注册是否完整，CSS 文件是否在对应主题目录下。
 
+## 项目发展
+
+[![Star History Chart](https://api.star-history.com/svg?repos=soevai/MetaSword&type=Date&theme=light&DateInterval=Monthly)](https://star-history.com/#soevai/MetaSword&Date)
 
 ## 作者留言
 
@@ -181,11 +191,7 @@ MetaSword/
 
 MIT License · Copyright (c) 2023–2026 [VoxShadow (发光的神)](https://github.com/soevai) · 字节暗流实验室
 
-## 项目发展
-
-[![Star History Chart](https://api.star-history.com/svg?repos=soevai/MetaSword&type=Date&theme=light&DateInterval=Monthly)](https://star-history.com/#soevai/MetaSword&Date)
-
----
+## Logo
 
 <p align="center">
   <img src="https://capsule-render.vercel.app/api?type=rect&color=ffffff&height=130&text=⚔️%20MetaSword&fontColor=0a0a0a&fontAlignY=40&desc=次元剑%20-%20逆流而上%20⧉%20字节暗流实验室&descSize=15&descAlignY=70" style="width: 100%;" />
