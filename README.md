@@ -169,7 +169,7 @@ MetaSword/
 
 ## 项目发展
 
-[![Star History Chart](https://api.star-history.com/svg?repos=soevai/MetaSword&type=Date&theme=light&DateInterval=Monthly)](https://star-history.com/#soevai/MetaSword&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=soevai/MetaSword&type=Date&theme=light&DateInterval=Monthly)](https://star-history.dera.page/#soevai/MetaSword&Date)
 
 ## 作者留言
 
