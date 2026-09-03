@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<!--
+  @Author      发光的神 (VoxShadow)
+  @Version     1.1.0 Beta
+  @Since       2026-08-15
+  @LastUpdated 2026-09-01
+  @Description 次元剑MCP服务状态界面
+  @License     MIT
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP Server</title>
+  <link rel="icon" href="/favicon.ico">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background: #111;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-left: 0;
+      position: relative;
+    }
+
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      z-index: -1;
+    }
+
+    .bg-layer.show {
+      opacity: 1;
+    }
+
+    .card {
+      background: #1a1a1a;
+      border-radius: 12px;
+      padding: 40px 48px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 0 40px rgba(48, 200, 22, 0.04), 0 4px 24px rgba(0, 0, 0, 0.5);
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+      animation: cardIn 0.6s ease forwards;
+    }
+
+    @keyframes cardIn {
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(48, 200, 22, 0.3), transparent);
+    }
+
+    @property --angle {
+      syntax: '<angle>';
+      initial-value: 0deg;
+      inherits: false;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 14px;
+      padding: 2px;
+      background: conic-gradient(from var(--angle),
+        #30c816, #00c8ff, #a855f7, #f59e0b, #30c816);
+      animation: flow 4s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+    }
+
+    @keyframes flow {
+      to { --angle: 360deg; }
+    }
+
+    .icon-wrap {
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .icon-wrap img {
+      width: 56px;
+      height: 56px;
+      display: block;
+      filter: drop-shadow(0 0 12px rgba(0,0,0,0.5));
+    }
+
+    .info {
+      text-align: left;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #eee;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #30c816;
+      background: rgba(48, 200, 22, 0.08);
+      border: 1px solid rgba(48, 200, 22, 0.2);
+      border-radius: 12px;
+      padding: 3px 10px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      background: #30c816;
+      border-radius: 50%;
+      box-shadow: 0 0 6px rgba(48, 200, 22, 0.5);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
+    }
+
+    .endpoint {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 13px;
+      color: #ccc;
+      background: #111;
+      padding: 12px 20px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .endpoint .method {
+      color: #30c816;
+    }
+
+    .footer {
+      font-size: 11px;
+      color: #fff;
+      margin-top: 16px;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-layer" id="bgLayer"></div>
+  <div class="card" id="card" style="visibility:hidden;">
+    <div class="icon-wrap"><img src="/favicon.ico" alt=""></div>
+    <div class="info">
+      <div class="header-row">
+        <h1>MCP</h1>
+        <span class="status-badge"><span class="dot"></span>运行中</span>
+      </div>
+      <div class="endpoint"><span class="method">POST</span> http://127.0.0.1:${PORT}/mcp</div>
+      <div class="footer">MetaSword v1.1.0 Beta</div>
+    </div>
+  </div>
+  <script>
+    var bg = new Image();
+    bg.onload = function() {
+      document.getElementById('bgLayer').style.background = '#111 url(' + bg.src + ') center/cover no-repeat';
+      document.getElementById('bgLayer').classList.add('show');
+      setTimeout(function() {
+        document.getElementById('card').style.visibility = 'visible';
+      }, 250);
+    };
+    bg.onerror = function() {
+      document.getElementById('card').style.visibility = 'visible';
+    };
+    bg.src = '/Assets/Image/MCP-Back.jpg';
+  </script>
+</body>
+
+</html>

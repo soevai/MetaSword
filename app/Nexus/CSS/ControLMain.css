@@ -41,7 +41,7 @@ body {
 }
 
 #close-btn {
-position: absolute;
+    position: absolute;
     padding: 8px 13px;
     top: 5px;
     right: 5px;
@@ -253,7 +253,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
     transform: translateY(-2px);
 }
 
-/* MCP 配置专用弹窗样式 */
 .mcp-popup {
     position: absolute;
     top: 0;
@@ -398,8 +397,8 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .version-tooltip {
     position: absolute;
     top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
+    left: auto;
+    right: -8px;
     margin-top: 8px;
     padding: 6px 10px;
     background: #333;
@@ -419,7 +418,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
     visibility: visible;
 }
 
-/* 主题设置样式 */
 .theme-options {
     display: flex;
     gap: 8px;
@@ -449,6 +447,11 @@ input[type="range"]::-webkit-slider-thumb:hover {
     border-color: #f39c12;
 }
 
+.theme-button:active {
+    transform: translateY(1px) scale(0.97);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
 .theme-preview {
     margin-top: 15px;
 }
@@ -457,6 +460,12 @@ input[type="range"]::-webkit-slider-thumb:hover {
     width: 100%;
     height: 115px;
     border-radius: 8px;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.preview-box.fade-out {
+    opacity: 0;
+    transform: scale(0.96);
 }
 
 .theme-default {

@@ -1,8 +1,8 @@
-﻿/**
+/**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.9
+ * @Version     1.1.0 Beta
  * @Since       2023-08-31
- * @LastUpdated 2026-06-28
+ * @LastUpdated 2026-09-01
  * @Description 负责次元剑核心逻辑
  * @License     MIT
  */
@@ -23,6 +23,22 @@ function getSystemPrompt() {
 }
 const ClickAudio = new Audio('../Assets/Sounds/Click.mp3');
 
+const TaskDoneAudio = new Audio('../Assets/Sounds/TaskDone.mp3');
+const UpdateAudio = new Audio('../Assets/Sounds/Update.mp3');
+ipcRenderer.on('nyeli-task-sound', () => {
+    try {
+        TaskDoneAudio.currentTime = 0;
+        TaskDoneAudio.play().catch(() => { });
+    } catch { }
+});
+
+ipcRenderer.on('app-update-sound', () => {
+    try {
+        UpdateAudio.currentTime = 0;
+        UpdateAudio.play().catch(() => { });
+    } catch { }
+});
+
 const loadVersionFromConfig = () => {
     try {
         const configPath = path.resolve(__dirname, '../Views/config/Config.xml');
@@ -42,8 +58,22 @@ const loadVersionFromConfig = () => {
         const channel = id === 'MetaSword-customCloseBut'
             ? 'close-mainwindow'
             : 'minimize-mainwindow';
-        ipcRenderer.send(channel);
+        document.body.classList.add('minimizing');
+        setTimeout(() => {
+            ipcRenderer.send(channel);
+        }, 220);
     });
+});
+
+ipcRenderer.on('window-restored', () => {
+    if (!document.body.classList.contains('minimizing')) return;
+    document.body.classList.remove('minimizing');
+    document.body.classList.add('restoring');
+    setTimeout(() => document.body.classList.remove('restoring'), 280);
+});
+
+ipcRenderer.on('play-close-anim', () => {
+    document.body.classList.add('minimizing');
 });
 
 document.querySelector("#Author-blog-link")?.addEventListener('click', (e) => {

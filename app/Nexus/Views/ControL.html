@@ -3,9 +3,9 @@
 
 <!--
   @Author      发光的神 (VoxShadow)
-  @Version     1.0.9
+  @Version     1.1.0 Beta
   @Since       2023-08-31
-  @LastUpdated 2026-06-28
+  @LastUpdated 2026-09-01
   @Description 次元剑设置面板
   @License     MIT
 -->
@@ -46,6 +46,10 @@
         <div class="theme-preview">
           <div class="preview-box" id="theme-preview"></div>
         </div>
+        <hr style="margin: 15px 0; border: 1px solid #333;">
+        <h3>窗口设置</h3>
+        <label>主窗口置顶 (默认：关闭)</label>
+        <button class="button" id="toggle-topmost">开启</button>
       </div>
       <div class="setting-card">
         <h3>版本更新</h3>
@@ -116,8 +120,19 @@
         </div>
       </div>
     </div>
+
+    <div id="update-modal" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.82); backdrop-filter:blur(4px); z-index:10000; align-items:center; justify-content:center; opacity:0; transform:scale(0.92); transition:opacity 0.25s ease, transform 0.25s ease;">
+      <div style="background:#1a1a1a; border:1px solid #333; border-radius:14px; padding:28px 32px; width:320px; box-shadow:0 8px 40px rgba(0,0,0,0.6);">
+        <div style="color:#fff; font-size:15px; font-weight:bold; margin-bottom:18px;">正在更新中...</div>
+        <div style="width:100%; height:12px; background:#2a2a2a; border-radius:6px; overflow:hidden;">
+          <div id="update-modal-bar" style="width:0%; height:100%; background:linear-gradient(90deg,#ffb400,#ffa500); border-radius:6px; transition:width 0.4s ease;"></div>
+        </div>
+      </div>
+    </div>
   </div>
+
   <div id="toast"></div>
+
   <script>
     const { ipcRenderer } = require('electron');
     const { exec } = require('child_process');
@@ -128,11 +143,10 @@
     document.getElementById('mcp-btn')?.addEventListener('click', () => {
       let mcpPort = 2085;
       ipcRenderer.send('get-mcp-port');
-      ipcRenderer.on('mcp-port', (event, port) => {
+      ipcRenderer.once('mcp-port', (event, port) => {
         mcpPort = port;
         showMCPPopup(mcpPort);
       });
-      showMCPPopup(mcpPort);
     });
 
     function showMCPPopup(port) {
@@ -152,8 +166,7 @@
       mcpPopup.classList.add('show');
       const copyBtn = document.getElementById('copy-btn');
       if (copyBtn) {
-        copyBtn.onclick = null;
-        copyBtn.addEventListener('click', async () => {
+        copyBtn.onclick = async () => {
           try {
             await navigator.clipboard.writeText(configText);
             showToast('已复制', 'success');
@@ -162,7 +175,7 @@
             console.error('复制失败:', err);
             showToast('复制失败', 'error');
           }
-        });
+        };
       }
     }
 
@@ -185,10 +198,11 @@
       toast.textContent = message;
       const styleMap = {
         success: { bg: 'rgba(1, 150, 100, 0.95)', color: '#fff' },
-        error: { bg: 'rgba(220, 53, 69, 0.95)', color: '#fff' },
-        default: { bg: 'rgba(1, 150, 100, 0.9)', color: '#fff' }
+        error:   { bg: 'rgba(220, 53, 69, 0.95)', color: '#fff' },
+        warning: { bg: 'rgba(217, 130, 43, 0.95)', color: '#fff' },
+        default: { bg: 'rgba(1, 150, 100, 0.9)',  color: '#fff' }
       };
-      const style = styleMap[type];
+      const style = styleMap[type] || styleMap.default;
       toast.style.backgroundColor = style.bg;
       toast.style.color = style.color;
       toast.style.transition = 'none';
@@ -211,10 +225,11 @@
       let configData = null;
       const loadConfig = async (config) => {
         try {
-          let animationStart, animationSpeed;
+          let animationStart, animationSpeed, alwaysOnTop;
           if (config) {
             animationStart = config.animationStart || 'enabled';
             animationSpeed = config.animationSpeed || 1.8;
+            alwaysOnTop = config.alwaysOnTop || 'disabled';
           } else {
             if (!fs.existsSync(CONFIG_PATH)) throw new Error(`配置文件不存在: ${CONFIG_PATH}`);
             const data = await fs.promises.readFile(CONFIG_PATH, 'utf8');
@@ -223,20 +238,24 @@
             if (!settings || !settings.tag) throw new Error('配置格式错误');
             const animationStartTag = settings.tag.find(tag => tag.$.name === 'AnimationStart');
             const animationSpeedTag = settings.tag.find(tag => tag.$.name === 'AnimationSpeed');
+            const alwaysOnTopTag = settings.tag.find(tag => tag.$.name === 'AlwaysOnTop');
             animationStart = animationStartTag?.$.value || 'enabled';
             animationSpeed = animationSpeedTag?.$.value || 1.8;
+            alwaysOnTop = alwaysOnTopTag?.$.value || 'disabled';
           }
           const video = document.querySelector('.media-item');
           const toggleBtn = document.getElementById('toggle-animation');
           const volumeInput = document.getElementById('volume');
           const rangeValue = document.getElementById('rangeValue');
+          const topmostBtn = document.getElementById('toggle-topmost');
           if (video) {
-            animationStart === 'disabled' ? video.pause() : video.play();
+            animationStart === 'disabled' ? video.pause() : video.play().catch(() => {});
             video.playbackRate = animationSpeed;
           }
           if (toggleBtn) toggleBtn.textContent = animationStart === 'enabled' ? '关闭' : '开启';
           if (volumeInput) volumeInput.value = animationSpeed;
           if (rangeValue) rangeValue.textContent = `当前值：${animationSpeed}`;
+          if (topmostBtn) topmostBtn.textContent = alwaysOnTop === 'enabled' ? '关闭' : '开启';
         } catch (err) {
           console.error('加载配置失败:', err);
           showToast('加载失败', 'error');
@@ -245,7 +264,6 @@
       const saveConfig = async (name, value) => {
         try {
           const result = await ipcRenderer.invoke('save-config', name, String(value));
-          if (!result && result !== undefined) throw new Error('保存失败');
         } catch (err) {
           console.error('保存配置失败:', err);
           showToast('保存失败', 'error');
@@ -280,6 +298,14 @@
         await saveConfig('AnimationSpeed', speed);
       };
       document.getElementById('toggle-animation')?.addEventListener('click', (event) => toggleAnimationStart(event.target));
+      const toggleTopmost = async (button) => {
+        if (!button) return;
+        const newStatus = button.textContent === '开启' ? 'enabled' : 'disabled';
+        button.textContent = newStatus === 'enabled' ? '关闭' : '开启';
+        ipcRenderer.send('set-main-always-on-top', newStatus === 'enabled');
+        await saveConfig('AlwaysOnTop', newStatus);
+      };
+      document.getElementById('toggle-topmost')?.addEventListener('click', (event) => toggleTopmost(event.target));
       ipcRenderer.on('config-data', (event, config) => loadConfig(config));
       loadConfig();
     } catch (err) {
@@ -315,6 +341,59 @@
       });
     });
 
+    let updateProgressHandler = null;
+    const performUpdate = async () => {
+      const updateButton = document.getElementById('toggle-update');
+      const versionLabel = document.getElementById('version-label');
+      const modal = document.getElementById('update-modal');
+      const modalBar = document.getElementById('update-modal-bar');
+      const resetButton = (text) => { if (updateButton) { updateButton.textContent = text; updateButton.disabled = false; updateButton.style.opacity = ''; } };
+      const openModal = () => {
+        if (!modal) return;
+        modal.style.display = 'flex';
+        modal.style.opacity = '0';
+        modal.style.transform = 'scale(0.92)';
+        modalBar.style.width = '0%';
+        void modal.offsetWidth;
+        requestAnimationFrame(() => {
+          modal.style.opacity = '1';
+          modal.style.transform = 'scale(1)';
+        });
+      };
+      const closeModal = () => {
+        if (!modal) return;
+        modal.style.opacity = '0';
+        modal.style.transform = 'scale(0.92)';
+        setTimeout(() => { modal.style.display = 'none'; }, 250);
+      };
+      if (updateButton) { updateButton.disabled = true; updateButton.style.opacity = '0.6'; }
+      try {
+        const check = await ipcRenderer.invoke('check-update');
+        if (!check || !check.ok) { resetButton('更新'); showToast('检查更新失败', 'error'); return; }
+        if (!check.needUpdate) { resetButton('更新'); showToast('已是最新版本', 'success'); return; }
+        openModal();
+        if (updateProgressHandler) ipcRenderer.removeListener('update-progress', updateProgressHandler);
+        updateProgressHandler = (event, p) => {
+          const pct = p.total > 0 ? Math.round((p.done / p.total) * 100) : 0;
+          if (modalBar) modalBar.style.width = pct + '%';
+        };
+        ipcRenderer.on('update-progress', updateProgressHandler);
+        const r = await ipcRenderer.invoke('perform-update');
+        if (updateProgressHandler) { ipcRenderer.removeListener('update-progress', updateProgressHandler); updateProgressHandler = null; }
+        if (r && r.ok && r.needRestart) {
+          if (modalBar) modalBar.style.width = '100%';
+          setTimeout(() => { closeModal(); showToast('更新完成', 'success'); setTimeout(() => ipcRenderer.send('restart-app'), 500); }, 600);
+        } else {
+          closeModal();
+          resetButton('更新');
+        }
+      } catch (e) {
+        if (updateProgressHandler) { ipcRenderer.removeListener('update-progress', updateProgressHandler); updateProgressHandler = null; }
+        closeModal();
+        resetButton('更新');
+      }
+    };
+
     const checkVersionUpdate = async (showTip = false) => {
       const currentVersion = await ipcRenderer.invoke('get-version');
       const remoteVersion = await ipcRenderer.invoke('get-latest-version');
@@ -323,12 +402,8 @@
           const updateButton = document.getElementById('toggle-update');
           const versionLabel = document.getElementById('version-label');
           if (updateButton) {
-            updateButton.textContent = '前往';
-            updateButton.onclick = () => {
-              exec('start "" "https://www.52tt.pro/tools/sword/"', (err) => {
-                if (err) console.error('打开链接失败:', err);
-              });
-            };
+            updateButton.textContent = '更新';
+            updateButton.onclick = performUpdate;
           }
           if (versionLabel) {
             versionLabel.innerHTML = `当前版本 [ v${currentVersion} ] <span class="version-update-icon">! <span class="version-tooltip">最新版本: v${remoteVersion}</span></span>`;
@@ -372,11 +447,18 @@
 
     document.getElementById('toggle-update')?.addEventListener('click', () => checkVersionUpdate(true));
 
+    let themePreviewTimer = null;
     function setThemePreview(preview, imagePath) {
-      preview.style.backgroundImage = `url('${imagePath}')`;
-      preview.style.backgroundSize = 'cover';
-      preview.style.backgroundPosition = 'center';
-      preview.style.backgroundRepeat = 'no-repeat';
+      if (themePreviewTimer) clearTimeout(themePreviewTimer);
+      preview.classList.add('fade-out');
+      themePreviewTimer = setTimeout(() => {
+        preview.style.backgroundImage = `url('${imagePath}')`;
+        preview.style.backgroundSize = 'cover';
+        preview.style.backgroundPosition = 'center';
+        preview.style.backgroundRepeat = 'no-repeat';
+        preview.classList.remove('fade-out');
+        themePreviewTimer = null;
+      }, 180);
     }
 
     function scrollToCard(inputElement) {
@@ -404,12 +486,8 @@
               icon.addEventListener('mouseleave', () => tooltip.classList.remove('show'));
             }
             if (updateButton) {
-              updateButton.textContent = '前往';
-              updateButton.onclick = () => {
-                exec('start "" "https://www.52tt.pro/tools/sword/"', (err) => {
-                  if (err) console.error('打开链接失败:', err);
-                });
-              };
+              updateButton.textContent = '更新';
+              updateButton.onclick = performUpdate;
             }
           } else {
             versionLabel.textContent = `当前版本 [ v${currentVersion} ]`;

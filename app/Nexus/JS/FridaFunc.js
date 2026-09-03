@@ -1,8 +1,8 @@
 /**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.9
+ * @Version     1.1.0 Beta
  * @Since       2023-08-31
- * @LastUpdated 2026-06-28
+ * @LastUpdated 2026-09-01
  * @Description 负责 Frida IDE 核心逻辑
  * @License     MIT
  */
@@ -27,8 +27,26 @@ maximizeButton.addEventListener("click", () => {
     document.body.style.backgroundColor = isMaximized ? "#22262e" : "";
 });
 
-document.getElementById("minimize-btn").addEventListener("click", () => ipcRenderer.send('frida-minimizeWindow'));
-document.getElementById("closeButton").addEventListener("click", () => window.close());
+document.getElementById("minimize-btn").addEventListener("click", () => {
+    document.body.classList.add('minimizing');
+    setTimeout(() => {
+        ipcRenderer.send('frida-minimizeWindow');
+    }, 220);
+});
+
+document.getElementById("closeButton").addEventListener("click", () => {
+    document.body.classList.add('minimizing');
+    setTimeout(() => {
+        window.close();
+    }, 220);
+});
+
+ipcRenderer.on('window-restored', () => {
+    if (!document.body.classList.contains('minimizing')) return;
+    document.body.classList.remove('minimizing');
+    document.body.classList.add('restoring');
+    setTimeout(() => document.body.classList.remove('restoring'), 280);
+});
 
 const dropZone = document.getElementById('Frida-IDE-dropZone');
 function showDropZone() {
@@ -216,16 +234,66 @@ document.querySelector('.Frida-IDE-search').addEventListener('click', async func
     } catch (error) { console.error(error); }
 });
 
-function getAndroidDeviceId() {
+const EMULATOR_PORTS = ['7555', '5555', '21503', '62001', '62025', '16384'];
+
+function adbExec(args, timeout = 10000) {
     return new Promise((resolve, reject) => {
-        const adb = spawn(`${Fridapath}/exten/adb`, ['devices']);
+        const proc = spawn(`${Fridapath}/exten/MSadb`, args);
         let output = '';
-        adb.stdout.on('data', d => output += d.toString());
-        adb.on('close', () => {
-            const devices = output.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('List') && l.endsWith('\tdevice')).map(l => l.split('\t')[0]);
-            if (devices.length === 1) resolve(devices[0]);
+        let errOutput = '';
+        let settled = false;
+        const timer = setTimeout(() => { settled = true; proc.kill(); reject(new Error('ADB 超时')); }, timeout);
+        proc.stdout.on('data', d => output += d.toString());
+        proc.stderr.on('data', d => errOutput += d.toString());
+        proc.on('close', code => {
+            if (settled) return;
+            clearTimeout(timer);
+            code === 0 ? resolve(output) : reject(new Error(errOutput || `ADB 退出码 ${code}`));
         });
+        proc.on('error', err => { if (settled) return; clearTimeout(timer); reject(err); });
     });
+}
+
+function parseDevices(output) {
+    return output.split('\n')
+        .map(l => l.trim())
+        .filter(l => l && !l.startsWith('List') && l.endsWith('\tdevice'))
+        .map(l => l.split('\t')[0]);
+}
+
+async function ensureAdbConnection() {
+    try {
+        const out = await adbExec(['devices'], 8000);
+        const devices = parseDevices(out);
+        if (devices.length > 0) return devices[0];
+    } catch (e) { /* 继续 */ }
+
+    try {
+        await adbExec(['kill-server'], 5000);
+        await adbExec(['start-server'], 5000);
+        const out = await adbExec(['devices'], 8000);
+        const devices = parseDevices(out);
+        if (devices.length > 0) return devices[0];
+    } catch (e) { /* 继续 */ }
+
+    for (const port of EMULATOR_PORTS) {
+        try {
+            await adbExec(['connect', `127.0.0.1:${port}`], 5000);
+            const out = await adbExec(['devices'], 5000);
+            const devices = parseDevices(out);
+            if (devices.length > 0) return devices[0];
+        } catch (e) { /* 继续 */ }
+    }
+
+    throw new Error('未检测到设备');
+}
+
+async function getAndroidDeviceId() {
+    try {
+        return await ensureAdbConnection();
+    } catch (e) {
+        return null;
+    }
 }
 
 const FridamodeSelect = document.getElementById('Frida-IDE-modeSelect');
@@ -243,7 +311,7 @@ FridamodeSelect.addEventListener('change', () => {
         }
         window.CurrentSelectedProcess = { pid: packageName, platform: 'Android', mode: 'Spawn' };
     } else {
-        window.CurrentSelectedProcess.mode = 'Attach';
+        if (window.CurrentSelectedProcess) window.CurrentSelectedProcess.mode = 'Attach';
     }
 });
 
@@ -426,6 +494,7 @@ FridatoggleButton.addEventListener("change", async function () {
             let fridaArgs;
             if (isAndroid) {
                 const AndroidDeviceId = await getAndroidDeviceId();
+                if (!AndroidDeviceId) { showMessage("❌ 未检测到 Android 设备"); return; }
                 fridaArgs = isSpawn ? ['-D', AndroidDeviceId, '-f', pid, '-s', filePath] : ['-D', AndroidDeviceId, '-p', pid, '-s', filePath];
             } else {
                 fridaArgs = isSpawn ? ['-f', pid, '-s', filePath] : ['-p', pid, '-s', filePath];
@@ -621,26 +690,20 @@ function showMessage(text, actions = []) {
 }
 
 document.querySelector('.Frida-IDE-android').addEventListener('click', async function () {
-    const fastlistProcess = spawn(`${Fridapath}/exten/adb`, ['devices']);
-    let output = '';
-    fastlistProcess.stdout.on('data', (data) => output += data.toString());
-    fastlistProcess.on('close', async () => {
-        const lines = output.split('\n').slice(1);
-        const devices = lines.map(line => line.trim()).filter(line => line.endsWith('\tdevice'));
-        if (devices.length > 0) {
-            showMessage("✅ 模拟器已连接");
-            await pushFridaScript();
-        } else {
-            showMessage("❌ 未检测到模拟器");
-        }
-    });
+    try {
+        const deviceId = await ensureAdbConnection();
+        showMessage(`✅ 模拟器已连接 (${deviceId})`);
+        await pushFridaScript();
+    } catch (e) {
+        showMessage("❌ 未检测到模拟器");
+    }
 });
 
 async function pushFridaScript() {
     try {
-        const pushCmd = `"${Fridapath}\\exten\\adb" push "${Fridapath}\\exten\\MS64" "/data/local/tmp/MS64"`;
-        const chmodCmd = `"${Fridapath}\\exten\\adb" shell su -c 'chmod 777 \"/data/local/tmp/MS64\"'`;
-        const runCmd = `"${Fridapath}\\exten\\adb" shell su -c "sh -c 'nohup /data/local/tmp/MS64 > /dev/null 2>&1 &'"`;
+        const pushCmd = `"${Fridapath}\\exten\\MSadb" push "${Fridapath}\\exten\\MS64" "/data/local/tmp/MS64"`;
+        const chmodCmd = `"${Fridapath}\\exten\\MSadb" shell su -c 'chmod 777 \"/data/local/tmp/MS64\"'`;
+        const runCmd = `"${Fridapath}\\exten\\MSadb" shell su -c "sh -c 'nohup /data/local/tmp/MS64 > /dev/null 2>&1 &'"`;
         const cmds = [pushCmd, chmodCmd, runCmd];
         for (const cmd of cmds) await runCmdFunction(cmd);
     } catch (error) { showMessage("❌ 推送失败"); }
@@ -678,7 +741,7 @@ FridaWindowtabs.forEach(tab => {
 async function loadAndroidProcessList() {
     const processTableBody = document.querySelector('#Frida-IDE-processes-android');
     processTableBody.innerHTML = '';
-    const psCmd = `"${Fridapath}\\exten\\adb" shell ps -A`;
+    const psCmd = `"${Fridapath}\\exten\\MSadb" shell ps -A`;
     try {
         const result = await runCmdFunction(psCmd);
         const lines = result.output.split('\n');

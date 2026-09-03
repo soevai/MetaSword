@@ -3,9 +3,9 @@
 
 <!--
   @Author      发光的神 (VoxShadow)
-  @Version     1.0.9
+  @Version     1.1.0 Beta
   @Since       2023-08-31
-  @LastUpdated 2026-06-28
+  @LastUpdated 2026-09-01
   @Description 次元剑主窗口界面
   @License     MIT
 -->
@@ -561,14 +561,35 @@
                 </div>
 
                 <div id="MetaSword-input-area">
+                    <div id="image-preview-bar" style="display:none;padding:4px 12px;gap:6px;flex-wrap:wrap;"></div>
                     <div id="MetaSword-prompt"> > </div>
                     <div id="MetaSword-input-actions">
+                        <div id="voice-waveform" style="display:none;">
+                            <div class="wave-bar" style="height:4px"></div>
+                            <div class="wave-bar" style="height:4px"></div>
+                            <div class="wave-bar" style="height:4px"></div>
+                            <div class="wave-bar" style="height:4px"></div>
+                            <div class="wave-bar" style="height:4px"></div>
+                            <div class="wave-bar" style="height:4px"></div>
+                            <div class="wave-bar" style="height:4px"></div>
+                            <div class="wave-bar" style="height:4px"></div>
+                            <div class="wave-bar" style="height:4px"></div>
+                            <div class="wave-bar" style="height:4px"></div>
+                            <div class="wave-bar" style="height:4px"></div>
+                            <div class="wave-bar" style="height:4px"></div>
+                        </div>
                         <input type="text" id="MetaSword-input" spellcheck="false">
-                        <button id="close-button">
+                        <button id="voice-button" title="语音输入">
+                            <img src="../Assets/Image/voice.png" alt="语音输入" draggable="false" />
+                        </button>
+                        <button id="thinking-mode-btn" title="思考模式">
+                            <img src="../Assets/Image/think.png" alt="思考模式" draggable="false" />
+                        </button>
+                        <button id="close-button" title="发送">
                             <img id="close-img" src="../Assets/Image/DeepStart.png" alt="Close Icon"
                                 draggable="false" />
                         </button>
-                        <button id="clear-button">
+                        <button id="clear-button" title="清空对话">
                             <img src="../Assets/Image/Clear.png" alt="Clear Icon" draggable="false">
                         </button>
                     </div>

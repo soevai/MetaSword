@@ -1,14 +1,14 @@
-﻿<!--
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<!--
   @Author      发光的神 (VoxShadow)
-  @Version     1.0.9
+  @Version     1.1.0 Beta
   @Since       2023-08-31
-  @LastUpdated 2026-06-28
+  @LastUpdated 2026-09-01
   @Description 次元剑 Agent 日志界面
   @License     MIT
 -->
-
-<!DOCTYPE html>
-<html lang="zh-CN">
 
 <head>
   <meta charset="UTF-8">
@@ -40,7 +40,7 @@
       --ms-radius-md: 10px;
       --ms-font-display: 'BalooDa2', system-ui, sans-serif;
       --ms-font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      --ms-font-mono: 'Consolas', 'JetBrains Mono', 'Fira Code', monospace;
+      --ms-font-mono: 'Consolas', 'JetBrains Mono', 'Fira Code', 'Microsoft YaHei', monospace;
     }
 
     body {
@@ -64,6 +64,17 @@
       overflow: hidden;
       background: var(--ms-bg-root);
       box-shadow: 0px 0px 3px 0px rgb(0 0 0 / 70%);
+      transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #panel.closing {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+
+    #panel.opening {
+      opacity: 0;
+      transform: translateX(-20px);
     }
 
     .panel-header {
@@ -83,6 +94,42 @@
       font-size: 14px;
       font-weight: 600;
       color: var(--ms-accent);
+    }
+
+    .panel-header .toggle-all-btn {
+      margin-left: auto;
+      background: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--ms-text-secondary);
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: var(--ms-font-body);
+      transition: all 0.15s ease;
+    }
+
+    .panel-header .toggle-all-btn:hover {
+      color: var(--ms-accent);
+      border-color: var(--ms-accent);
+    }
+
+    .panel-header .export-btn {
+      margin-left: 6px;
+      background: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--ms-text-secondary);
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: var(--ms-font-body);
+      transition: all 0.15s ease;
+    }
+
+    .panel-header .export-btn:hover {
+      color: var(--ms-accent);
+      border-color: var(--ms-accent);
     }
 
     #tool-log {
@@ -115,11 +162,11 @@
     @keyframes logIn {
       from {
         opacity: 0;
-        transform: scale(0.97) translateY(2px);
+        transform: translateX(20px);
       }
       to {
         opacity: 1;
-        transform: scale(1) translateY(0);
+        transform: translateX(0);
       }
     }
 
@@ -184,7 +231,8 @@
       max-height: 80px;
       overflow-y: auto;
       overflow-x: hidden;
-      font-family: var(--ms-font-body);
+      font-family: var(--ms-font-mono);
+      font-size: 13px;
       background: rgba(0, 0, 0, 0.2);
       padding: 6px 8px;
       border-radius: var(--ms-radius-sm);
@@ -202,7 +250,12 @@
       overflow-wrap: break-word;
       background: rgba(0, 0, 0, 0.3);
       border-radius: var(--ms-radius-sm);
-      font-family: var(--ms-font-body);
+      font-family: var(--ms-font-mono);
+      padding: 6px 8px;
+    }
+
+    .tool-log-item .log-result pre {
+      font-family: inherit;
     }
 
     .tool-log-item .log-loading {
@@ -254,9 +307,11 @@
 </head>
 
 <body>
-  <div id="panel">
+  <div id="panel" class="opening">
     <div class="panel-header">
       <span>Agent Logs</span>
+      <button class="toggle-all-btn" id="toggle-all-btn" title="展开/折叠全部">展开</button>
+      <button class="export-btn" id="export-btn" title="导出日志为 JSON">导出</button>
     </div>
     <div id="tool-log">
       <p class="empty-hint">Agent Activity</p>
@@ -266,6 +321,58 @@
     const { ipcRenderer } = require('electron');
     const toolLog = document.getElementById('tool-log');
     const emptyHint = toolLog.querySelector('.empty-hint');
+    const toggleAllBtn = document.getElementById('toggle-all-btn');
+
+    let allExpanded = localStorage.getItem('agentlogs_expanded') === 'true';
+    updateToggleButton();
+
+    function updateToggleButton() {
+      toggleAllBtn.textContent = allExpanded ? '折叠' : '展开';
+    }
+
+    toggleAllBtn.addEventListener('click', () => {
+      allExpanded = !allExpanded;
+      localStorage.setItem('agentlogs_expanded', allExpanded);
+      updateToggleButton();
+      toolLog.querySelectorAll('.tool-log-item').forEach(item => {
+        if (allExpanded) {
+          item.classList.remove('collapsed');
+        } else {
+          item.classList.add('collapsed');
+        }
+      });
+    });
+
+    const exportBtn = document.getElementById('export-btn');
+    exportBtn.addEventListener('click', () => {
+      const logs = [];
+      toolLog.querySelectorAll('.tool-log-item').forEach(item => {
+        const nameEl = item.querySelector('.log-name');
+        const statusEl = item.querySelector('.log-status');
+        const inputEl = item.querySelector('.log-input');
+        const resultEl = item.querySelector('.log-result');
+        const log = {
+          tool_id: item.id.replace('tool-', ''),
+          tool_name: nameEl ? nameEl.textContent : '',
+          status: statusEl ? statusEl.textContent : '',
+          tool_input: inputEl ? inputEl.textContent.trim() : '',
+          result: resultEl ? resultEl.textContent.trim() : '',
+        };
+        logs.push(log);
+      });
+      ipcRenderer.invoke('export-agent-logs', logs).then((res) => {
+        if (res && res.ok) {
+          exportBtn.style.color = '#30c816';
+          setTimeout(() => { exportBtn.style.color = ''; }, 1200);
+        }
+      }).catch(() => {});
+    });
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.getElementById('panel').classList.remove('opening');
+      });
+    });
 
     function escapeHtml(text) {
       const div = document.createElement('div');
@@ -286,7 +393,7 @@
     ipcRenderer.on('tool-call', (event, data) => {
       if (emptyHint) emptyHint.style.display = 'none';
       const item = document.createElement('div');
-      item.className = 'tool-log-item';
+      item.className = 'tool-log-item' + (allExpanded ? '' : ' collapsed');
       item.id = 'tool-' + data.tool_id;
       const inputStr = data.tool_input && Object.keys(data.tool_input).length
         ? JSON.stringify(data.tool_input, null, 2)
@@ -314,8 +421,15 @@
     ipcRenderer.on('tool-result', (event, data) => {
       const item = document.getElementById('tool-' + data.tool_id);
       const resultEl = document.getElementById('result-' + data.tool_id);
-      if (resultEl) {
-        const text = data.content || '';
+ 
+      if (item) {
+        const status = item.querySelector('.log-status');
+        if (status) {
+          status.textContent = 'done';
+        }
+      }
+      const text = data.content || '';
+      if (resultEl && text) {
         const isJson = text.trim().startsWith('{') || text.trim().startsWith('[');
         if (isJson) {
           let formatted = text;
@@ -330,10 +444,8 @@
         } else {
           resultEl.innerHTML = escapeHtml(text);
         }
-      }
-      if (item) {
-        const status = item.querySelector('.log-status');
-        if (status) status.textContent = 'done';
+      } else if (resultEl) {
+        resultEl.innerHTML = '';
       }
     });
 
@@ -386,15 +498,89 @@
       allowBtn.style.background = 'linear-gradient(176deg,#f39c12,#de7110)';
       allowBtn.style.borderColor = '#de7110';
 
+      const _requestId = data.requestId || null;
       const respond = (action) => {
         card.style.opacity = '0'; card.style.transform = 'scale(0.92) translateY(16px)';
         overlay.style.background = 'rgba(0,0,0,0)';
         setTimeout(() => overlay.remove(), 280);
-        ipcRenderer.send('perm-response', { action });
+        const payload = { action };
+        if (_requestId) payload.requestId = _requestId;
+        ipcRenderer.send('perm-response', payload);
       };
       allowBtn.onclick = () => respond('allow');
       denyBtn.onclick = () => respond('deny');
       overlay.onclick = (e) => { if (e.target === overlay) respond('deny'); };
+      void overlay.offsetHeight;
+      requestAnimationFrame(() => {
+        overlay.style.background = 'rgba(0,0,0,0.6)';
+        card.style.opacity = '1'; card.style.transform = 'scale(1) translateY(0)';
+      });
+    });
+
+    ipcRenderer.on('question-request', (event, data) => {
+      const existingQ = document.getElementById('_qoverlay');
+      if (existingQ) existingQ.remove();
+      const questions = data.questions || [];
+      const panel = document.getElementById('panel');
+      const overlay = document.createElement('div');
+      overlay.id = '_qoverlay';
+      overlay.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:100000;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;transition:background 0.25s ease;border-radius:12px;';
+
+      const bodyHtml = questions.map((q, qi) => {
+        const qHeader = escapeHtml(q.header || '');
+        const qText = escapeHtml(q.question || '');
+        const multiHint = q.multi_select ? '（可多选）' : '';
+        const opts = (q.options || []).map((o, oi) => {
+          return '<div class="_qopt" data-q="' + qi + '" data-o="' + oi + '" style="margin:4px 0;padding:7px 10px;border:1px solid #3a3a3a;border-radius:6px;cursor:pointer;font-size:13px;color:#d4d4d8;transition:all 0.15s ease;user-select:none;">' + escapeHtml(o.label) + '<span style="display:block;font-size:11px;color:#8b8b92;margin-top:2px;">' + escapeHtml(o.description || '') + '</span></div>';
+        }).join('');
+        return '<div style="margin-bottom:14px;"><div style="color:#f39c12;font-weight:600;font-size:13px;margin-bottom:2px;">' + qHeader + ' ' + multiHint + '</div><div style="font-size:13px;color:#e4e4e7;margin-bottom:6px;">' + qText + '</div>' + opts + '</div>';
+      }).join('');
+
+      overlay.innerHTML = '<div style="background:#1a1a1a;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:24px;width:460px;max-width:94%;max-height:80%;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,0.6);font-family:\'Segoe UI\',\'华文细黑\',sans-serif;opacity:0;transform:scale(0.92) translateY(16px);transition:opacity 0.25s ease,transform 0.25s cubic-bezier(0.34,1.56,0.64,1);"><h3 style="color:#30c816;margin:0 0 14px;font-size:18px;">夜璃想问你</h3>' + bodyHtml + '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;"><button id="_qsubmit">提交</button></div></div>';
+      panel.appendChild(overlay);
+      const card = overlay.querySelector('div');
+
+      const selection = {};
+      overlay.querySelectorAll('._qopt').forEach(opt => {
+        opt.addEventListener('click', () => {
+          const qi = opt.dataset.q;
+          const oi = opt.dataset.o;
+          const q = questions[qi];
+          const label = q.options[oi].label;
+          if (q.multi_select) {
+            const arr = selection[qi] || [];
+            const pos = arr.indexOf(label);
+            if (pos >= 0) { arr.splice(pos, 1); opt.style.borderColor = '#3a3a3a'; opt.style.background = ''; }
+            else { arr.push(label); opt.style.borderColor = '#f39c12'; opt.style.background = 'rgba(243,156,18,0.12)'; }
+            selection[qi] = arr;
+          } else {
+            overlay.querySelectorAll('._qopt[data-q="' + qi + '"]').forEach(o => { o.style.borderColor = '#3a3a3a'; o.style.background = ''; });
+            opt.style.borderColor = '#30c816'; opt.style.background = 'rgba(48,200,22,0.14)';
+            selection[qi] = [label];
+          }
+        });
+      });
+
+      const submitBtn = overlay.querySelector('#_qsubmit');
+      submitBtn.style.cssText = 'background:linear-gradient(176deg,#30c816,#199b0a);border:1px solid #199b0a;color:#fff;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:bold;font-family:inherit;transition:transform 0.2s ease,box-shadow 0.2s ease;';
+      submitBtn.addEventListener('mouseenter', () => { submitBtn.style.transform = 'translateY(-2px)'; submitBtn.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)'; });
+      submitBtn.addEventListener('mouseleave', () => { submitBtn.style.transform = ''; submitBtn.style.boxShadow = ''; });
+
+      const _requestId = data.requestId || null;
+      submitBtn.onclick = () => {
+        const answers = {};
+        questions.forEach((q, qi) => {
+          const arr = selection[qi] || [];
+          answers[q.header] = arr.join(', ');
+        });
+        card.style.opacity = '0'; card.style.transform = 'scale(0.92) translateY(16px)';
+        overlay.style.background = 'rgba(0,0,0,0)';
+        setTimeout(() => overlay.remove(), 280);
+        const payload = { answers };
+        if (_requestId) payload.requestId = _requestId;
+        ipcRenderer.send('question-response', payload);
+      };
+
       void overlay.offsetHeight;
       requestAnimationFrame(() => {
         overlay.style.background = 'rgba(0,0,0,0.6)';
@@ -409,9 +595,39 @@
       }
     });
 
+    ipcRenderer.on('close-agentlogs', () => {
+      const panel = document.getElementById('panel');
+      if (panel) {
+        panel.classList.add('closing');
+      }
+    });
+
+    ipcRenderer.on('window-restored', () => {
+      const panel = document.getElementById('panel');
+      if (panel) {
+        panel.classList.remove('closing');
+      }
+    });
+
     ipcRenderer.on('clear-tool-log', () => {
-      toolLog.querySelectorAll('.tool-log-item').forEach(el => el.remove());
-      if (emptyHint) emptyHint.style.display = '';
+      const items = toolLog.querySelectorAll('.tool-log-item');
+      if (items.length === 0) {
+        toolLog.querySelectorAll('.tool-log-item').forEach(el => el.remove());
+        if (emptyHint) emptyHint.style.display = '';
+        return;
+      }
+      items.forEach((el, i) => {
+        el.style.transition = 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-8px) scale(0.95)';
+        el.style.marginBottom = '0';
+        el.style.maxHeight = '0';
+        el.style.overflow = 'hidden';
+      });
+      setTimeout(() => {
+        items.forEach(el => el.remove());
+        if (emptyHint) emptyHint.style.display = '';
+      }, 260);
     });
   </script>
 </body>

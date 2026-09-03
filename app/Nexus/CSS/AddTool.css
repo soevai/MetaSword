@@ -215,11 +215,11 @@ label {
     display: none;
 }
 
-.switch-item input:checked + .switch {
+.switch-item input:checked+.switch {
     background: rgb(1 150 100);
 }
 
-.switch-item input:checked + .switch::before {
+.switch-item input:checked+.switch::before {
     transform: translateX(20px);
 }
 

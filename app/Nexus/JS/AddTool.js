@@ -1,8 +1,8 @@
 /**
  * @Author      发光的神 (VoxShadow)
- * @Version     1.0.9
+ * @Version     1.1.0 Beta
  * @Since       2023-08-31
- * @LastUpdated 2026-06-28
+ * @LastUpdated 2026-09-01
  * @Description 添加工具对话框逻辑
  * @License     MIT
  */

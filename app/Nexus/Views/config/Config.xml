@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <config>
   <settings>
-    <tag name="MetaVersion" value="1.0.9"/>
+    <tag name="MetaVersion" value="1.1.0 Beta"/>
     <tag name="MetaWindowWidth" value="900"/>
     <tag name="MetaWindowHeight" value="550"/>
-    <tag name="AnimationStart" value="disabled"/>
+    <tag name="AnimationStart" value="enabled"/>
     <tag name="AnimationSpeed" value="1.8"/>
+    <tag name="AlwaysOnTop" value="disabled"/>
   </settings>
 </config>

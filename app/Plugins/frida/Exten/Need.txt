@@ -1,5 +1,0 @@
-adb.exe
-adbwinApi.dll
-Fastlist.exe
-FridaRun.exe
-MS64

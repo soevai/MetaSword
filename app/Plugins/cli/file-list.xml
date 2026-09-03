@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entries>
+  <directory>apktool</directory>
+  <directory>arp-scan</directory>
+  <directory>curl</directory>
+  <directory>dnSpy</directory>
+  <directory>exiftool</directory>
+  <directory>ffuf</directory>
+  <directory>jadx</directory>
+  <directory>radare2</directory>
+  <directory>rustscan</directory>
+  <directory>sqlmap</directory>
+  <directory>strings</directory>
+  <directory>tshark</directory>
+  <directory>upx</directory>
+  <directory>volatility3</directory>
+</entries>

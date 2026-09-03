@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entries>
+  <directory>weights</directory>
+  <file>bridge.py</file>
+  <file>input.py</file>
+  <file>pyproject.toml</file>
+  <file>server.py</file>
+  <file>ui_parser.py</file>
+  <file>window.py</file>
+</entries>

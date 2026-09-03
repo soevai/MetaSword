@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>次元剑 · 对话记录</title>
+    {{FAVICON}}
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+        body {
+            background: #141414;
+            color: #f4f4f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+            font-size: 14px;
+            line-height: 1.65;
+            min-height: 100vh;
+        }
+        .page-header {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 20px 24px 16px;
+            opacity: 0;
+            animation: fadeIn 0.5s ease 0.1s forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .page-header .title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #f4f4f5;
+            display: flex;
+            align-items: center;
+        }
+        .page-header .title .title-icon {
+            width: 35px;
+            height: 35px;
+            margin-right: 10px;
+            object-fit: contain;
+            display: block;
+        }
+        .page-header .title .date {
+            font-weight: 400;
+            font-size: 12px;
+            color: #71717a;
+            margin-left: 10px;
+        }
+        .page-header .divider {
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            margin: 14px 0 10px;
+        }
+        .page-header .disclaimer {
+            font-weight: 400;
+            font-size: 12px;
+            color: #71717a;
+            text-align: center;
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .msg {
+            display: flex;
+            gap: 10px;
+            max-width: 78%;
+            opacity: 0;
+            animation: msgIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        @keyframes msgIn {
+            from { opacity: 0; transform: translateY(24px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .msg.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+            animation-name: msgInRight;
+        }
+        .msg.ai {
+            align-self: flex-start;
+            animation-name: msgInLeft;
+        }
+        @keyframes msgInRight {
+            from { opacity: 0; transform: translateX(24px) scale(0.96); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+        @keyframes msgInLeft {
+            from { opacity: 0; transform: translateX(-24px) scale(0.96); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+        .msg:nth-child(1) { animation-delay: 0.15s; }
+        .msg:nth-child(2) { animation-delay: 0.25s; }
+        .msg:nth-child(3) { animation-delay: 0.35s; }
+        .msg:nth-child(4) { animation-delay: 0.45s; }
+        .msg:nth-child(5) { animation-delay: 0.55s; }
+        .msg:nth-child(6) { animation-delay: 0.65s; }
+        .msg:nth-child(7) { animation-delay: 0.75s; }
+        .msg:nth-child(8) { animation-delay: 0.85s; }
+        .msg:nth-child(9) { animation-delay: 0.95s; }
+        .msg:nth-child(10) { animation-delay: 1.05s; }
+        .msg:nth-child(n+11) { animation-delay: 1.15s; }
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            overflow: hidden;
+            border: 1.5px solid rgba(255,255,255,0.15);
+        }
+        img.avatar { object-fit: cover; }
+        .msg-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+        .msg.user .msg-body { align-items: flex-end; }
+        .msg-head {
+            font-size: 13px;
+            font-weight: 600;
+            color: #a1a1aa;
+            line-height: 1;
+        }
+        .msg-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 6px 0;
+        }
+        .msg-img-wrap {
+            position: relative;
+            padding-left: 20px;
+        }
+        .msg-img-num {
+            position: absolute;
+            left: 0;
+            top: 4px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #1a1a1a;
+            border: 1px solid #555;
+            color: #ccc;
+            font-size: 10px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .msg-img-wrap img {
+            max-width: min(420px, 100%);
+            max-height: 320px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: #000;
+            object-fit: contain;
+            display: block;
+            cursor: pointer;
+        }
+        #io-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 99999;
+            background: rgba(0,0,0,0.88);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: zoom-out;
+            opacity: 0;
+            transition: opacity 0.18s ease;
+        }
+        #io-overlay.show { display: flex; }
+        #io-overlay.visible { opacity: 1; }
+        #io-img {
+            max-width: 92%;
+            max-height: 92%;
+            border-radius: 10px;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.6);
+            object-fit: contain;
+            user-select: none;
+            -webkit-user-drag: none;
+            transition: transform 0.1s ease;
+            transform-origin: center center;
+        }
+        .io-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+            user-select: none;
+        }
+        .io-btn:hover { background: rgba(255,255,255,0.25); }
+        .io-prev { left: 16px; }
+        .io-next { right: 16px; }
+        #io-indicator {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 12px;
+            background: rgba(0,0,0,0.5);
+            padding: 4px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .thinking summary {
+            color: #888;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 6px 0;
+            user-select: none;
+            list-style: none;
+        }
+        .thinking summary::-webkit-details-marker { display: none; }
+        .thinking summary::before {
+            content: '▶ ';
+            display: inline-block;
+            transition: transform 0.15s;
+            font-size: 10px;
+            color: #666;
+        }
+        .thinking[open] summary::before { transform: rotate(90deg); }
+        .thinking {
+            font-size: 13px;
+            color: #9a9a9a;
+            white-space: pre-wrap;
+            text-align: left;
+        }
+        .thinking[open] {
+            background: rgba(167,139,250,0.06);
+            border-left: 3px solid #a78bfa;
+            padding: 10px 14px;
+            border-radius: 0 6px 6px 0;
+        }
+        .bubble {
+            background: #1a1a1a;
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 12px 18px;
+            border-radius: 18px 18px 18px 6px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+            text-align: left;
+            word-break: break-word;
+            white-space: pre-wrap;
+            font-size: 14px;
+        }
+        .msg-tokens {
+            text-align: right;
+            font-size: 11px;
+            color: #71717a;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        .msg.user .bubble {
+            border-radius: 18px 18px 6px 18px;
+        }
+        .bubble code {
+            background: rgba(255,255,255,0.08);
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 13px;
+            font-family: "JetBrains Mono", Consolas, "Courier New", monospace;
+        }
+        .bubble pre {
+            background: #141414;
+            border: 1px solid rgba(255,255,255,0.06);
+            padding: 14px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 13px;
+            margin: 10px 0;
+            text-align: left;
+        }
+        .bubble pre code {
+            background: none;
+            padding: 0;
+            font-size: 13px;
+        }
+        .bubble p { margin: 6px 0; }
+        .bubble .md { white-space: normal; }
+        .skill-tag {
+            background: rgba(48,200,22,0.08);
+            color: #30c816;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            border: 1px solid rgba(48,200,22,0.3);
+            word-break: break-all;
+        }
+        .bubble ul, .bubble ol {
+            padding-left: 22px;
+            margin: 6px 0;
+        }
+        .bubble li { margin: 3px 0; }
+        .bubble h1, .bubble h2, .bubble h3, .bubble h4 {
+            margin: 14px 0 6px;
+            font-weight: 700;
+        }
+        .bubble h1 { font-size: 18px; }
+        .bubble h2 { font-size: 16px; }
+        .bubble h3 { font-size: 15px; }
+        .bubble blockquote {
+            border-left: 3px solid rgba(48,200,22,0.6);
+            padding-left: 14px;
+            color: #a1a1aa;
+            margin: 10px 0;
+        }
+        .bubble hr {
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            margin: 14px 0;
+        }
+        @media (max-width: 600px) {
+            .page-header { padding: 16px 14px 12px; }
+            .container { padding: 14px; gap: 14px; }
+            .msg { max-width: 94%; gap: 8px; }
+            .avatar { width: 30px; height: 30px; }
+            .bubble { padding: 10px 13px; font-size: 13.5px; }
+            .msg-img-wrap img { max-height: 240px; }
+            .bubble pre { padding: 10px; font-size: 12px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-header">
+        <div class="title"><img class="title-icon" src="{{ICON}}" alt="">次元剑 · 对话记录<span class="date">{{DATE}}</span></div>
+        <hr class="divider">
+        <div class="disclaimer">内容由 AI 生成，请核实重要信息</div>
+    </div>
+    <div class="container">
+        {{CONTENT}}
+    </div>
+    <div id="io-overlay">
+        <div class="io-btn io-prev">&#8249;</div>
+        <img id="io-img" alt="">
+        <div class="io-btn io-next">&#8250;</div>
+        <div id="io-indicator"></div>
+    </div>
+    <script>
+    (function () {
+        var overlay = document.getElementById('io-overlay');
+        var img = document.getElementById('io-img');
+        var indicator = document.getElementById('io-indicator');
+        var prevBtn = overlay.querySelector('.io-prev');
+        var nextBtn = overlay.querySelector('.io-next');
+        var imgs = Array.prototype.slice.call(document.querySelectorAll('.msg-img-wrap img'));
+        if (imgs.length === 0) { overlay.parentNode.removeChild(overlay); return; }
+        var idx = 0, scale = 1, tx = 0, ty = 0;
+        var dragging = false, sx = 0, sy = 0, stx = 0, sty = 0;
+        var lastDist = 0, pinchScale = 1, pinchTx = 0, pinchTy = 0;
+        var touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+        var apply = function () { img.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')'; };
+        var update = function () {
+            img.src = imgs[idx].src;
+            indicator.textContent = (idx + 1) + ' / ' + imgs.length;
+            scale = 1; tx = 0; ty = 0; apply();
+        };
+        var gotoIdx = function (i) { idx = (i + imgs.length) % imgs.length; update(); };
+        var openAt = function (i) {
+            idx = i; update();
+            overlay.classList.add('show');
+            requestAnimationFrame(function () { overlay.classList.add('visible'); });
+        };
+        var close = function () {
+            overlay.classList.remove('visible');
+            setTimeout(function () { overlay.classList.remove('show'); }, 180);
+        };
+        imgs.forEach(function (im, i) {
+            im.addEventListener('click', function (e) { e.stopPropagation(); openAt(i); });
+        });
+        overlay.addEventListener('click', close);
+        img.addEventListener('click', function (e) { e.stopPropagation(); });
+        img.addEventListener('dblclick', function () {
+            if (scale > 1) { scale = 1; tx = 0; ty = 0; }
+            else { scale = 2; }
+            apply();
+        });
+        img.addEventListener('wheel', function (e) {
+            e.preventDefault();
+            var delta = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+            var rect = img.getBoundingClientRect();
+            var cx = e.clientX - rect.left - rect.width / 2;
+            var cy = e.clientY - rect.top - rect.height / 2;
+            var newScale = Math.max(0.1, Math.min(10, scale * delta));
+            tx -= cx * (newScale / scale - 1);
+            ty -= cy * (newScale / scale - 1);
+            scale = newScale; apply();
+        }, { passive: false });
+        var startDrag = function (ex, ey) {
+            if (scale <= 1) return;
+            dragging = true; sx = ex; sy = ey; stx = tx; sty = ty;
+            overlay.style.cursor = 'grabbing';
+        };
+        var moveDrag = function (ex, ey) {
+            if (!dragging) return;
+            tx = stx + (ex - sx); ty = sty + (ey - sy); apply();
+        };
+        var endDrag = function () {
+            if (dragging) { dragging = false; overlay.style.cursor = 'zoom-out'; }
+        };
+        img.addEventListener('mousedown', function (e) { e.preventDefault(); startDrag(e.clientX, e.clientY); });
+        document.addEventListener('mousemove', function (e) { moveDrag(e.clientX, e.clientY); });
+        document.addEventListener('mouseup', endDrag);
+        img.addEventListener('touchstart', function (e) {
+            if (e.touches.length === 1) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchStartTime = Date.now();
+                startDrag(e.touches[0].clientX, e.touches[0].clientY);
+            } else if (e.touches.length === 2) {
+                dragging = false;
+                var dx = e.touches[0].clientX - e.touches[1].clientX;
+                var dy = e.touches[0].clientY - e.touches[1].clientY;
+                lastDist = Math.sqrt(dx * dx + dy * dy);
+                pinchScale = scale; pinchTx = tx; pinchTy = ty;
+            }
+        }, { passive: false });
+        img.addEventListener('touchmove', function (e) {
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+            } else if (e.touches.length === 2) {
+                var dx = e.touches[0].clientX - e.touches[1].clientX;
+                var dy = e.touches[0].clientY - e.touches[1].clientY;
+                var dist = Math.sqrt(dx * dx + dy * dy);
+                if (lastDist > 0) {
+                    var newScale = Math.max(0.1, Math.min(10, pinchScale * (dist / lastDist)));
+                    var rect = img.getBoundingClientRect();
+                    var cx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left - rect.width / 2;
+                    var cy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top - rect.height / 2;
+                    tx = pinchTx - cx * (newScale / pinchScale - 1);
+                    ty = pinchTy - cy * (newScale / pinchScale - 1);
+                    scale = newScale; apply();
+                }
+            }
+        }, { passive: false });
+        img.addEventListener('touchend', function (e) {
+            lastDist = 0; endDrag();
+            if (imgs.length > 1 && scale === 1 && Date.now() - touchStartTime < 500) {
+                var endX = (e.changedTouches.length > 0) ? e.changedTouches[0].clientX : touchStartX;
+                var dx = endX - touchStartX;
+                var dy = Math.abs((e.changedTouches.length > 0 ? e.changedTouches[0].clientY : touchStartY) - touchStartY);
+                if (Math.abs(dx) > 60 && Math.abs(dx) > dy) {
+                    gotoIdx(dx > 0 ? idx - 1 : idx + 1);
+                }
+            }
+        });
+        prevBtn.addEventListener('click', function (e) {
+            if (imgs.length > 1) { e.stopPropagation(); gotoIdx(idx - 1); }
+        });
+        nextBtn.addEventListener('click', function (e) {
+            if (imgs.length > 1) { e.stopPropagation(); gotoIdx(idx + 1); }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (!overlay.classList.contains('show')) return;
+            if (e.key === 'ArrowLeft') { if (imgs.length > 1) { e.preventDefault(); gotoIdx(idx - 1); } }
+            else if (e.key === 'ArrowRight') { if (imgs.length > 1) { e.preventDefault(); gotoIdx(idx + 1); } }
+            else if (e.key === 'Escape') { e.preventDefault(); close(); }
+        });
+    })();
+    </script>
+</body>
+
+</html>

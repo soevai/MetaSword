@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entries>
+  <directory>.Nyeli</directory>
+  <directory>dist</directory>
+  <directory>model</directory>
+  <directory>node_modules</directory>
+  <file>index.js</file>
+  <file>package.json</file>
+</entries>
