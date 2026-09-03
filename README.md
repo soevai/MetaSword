@@ -30,7 +30,7 @@
 
 ### 🍭 次元・紫雅・灰
 <p align="center">
-  <img src="https://pic1.imgdb.cn/item/69cdd7870d45b9ceac41894f.png" alt="MetaSword" width="55%" />
+  <img src="https://www.52tt.pro/usr/uploads/2026/04/1265071908.png" alt="MetaSword" width="55%" />
 </p>
 
 ### 🔰 工具分类
