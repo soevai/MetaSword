@@ -10,6 +10,12 @@
 const { exec: execCmd, execSync: execSyncCmd } = require('child_process');
 const axios = require('axios');
 const marked = require('marked');
+// marked 默认连单个 ~ 也当删除线，AI 回复里的 ~ 语气词会被划掉，这里只保留 GFM 标准的 ~~
+marked.use({ tokenizer: { del(src) {
+  if (!src.startsWith('~~')) return;
+  const cap = this.rules.inline.del.exec(src);
+  if (cap) return { type: 'del', raw: cap[0], text: cap[2], tokens: this.lexer.inlineTokens(cap[2]) };
+} } });
 const os = require('os');
 const p = require('path');
 const f = require('fs');
